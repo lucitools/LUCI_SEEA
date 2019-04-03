@@ -4,6 +4,7 @@ import os
 import numpy as np
 import LUCI.lib.log as log
 import LUCI.lib.common as common
+from LUCI.lib.external import six # Python 2/3 compatibility module
 
 from LUCI.lib.refresh_modules import refresh_modules
 refresh_modules([log, common])
@@ -17,9 +18,14 @@ def function(outputFolder, dataSetsToAggregate, aggregateMask, maskFullyWithinSA
         studyAreaMaskDissolved = prefix + "studyAreaMaskDissolved"
         aggregateMaskClipped = prefix + "aggregateMaskClipped"
 
-        singleAggUnit = 'in_memory\\' + "singleAggUnit"
-        dataClippedToUnit = 'in_memory\\' + "dataClippedToUnit"
-        dataInUnitDissolved = 'in_memory\\' + "dataInUnitDissolved"
+        if six.PY2:
+            memoryPrefix = 'in_memory'
+        else:
+            memoryPrefix = 'memory'
+
+        singleAggUnit = os.path.join(memoryPrefix, "singleAggUnit")
+        dataClippedToUnit = os.path.join(memoryPrefix, "dataClippedToUnit")
+        dataInUnitDissolved = os.path.join(memoryPrefix, "dataInUnitDissolved")
         
         tempLayer = "MaskLayer"
         unitMaskLayer = "UnitMaskLayer"
@@ -125,10 +131,10 @@ def function(outputFolder, dataSetsToAggregate, aggregateMask, maskFullyWithinSA
             aggregateStats = os.path.join(outputFolder, statsFilename)
 
             arcpy.CopyFeatures_management(aggregateMaskClipped, aggregateStats)
-            arcpy.AddField_management(aggregateStats, "NUM_COVERS", "SHORT", 6, 2, "", "", "NULLABLE")
-            arcpy.AddField_management(aggregateStats, "SHANNON", "DOUBLE", 6, 2, "", "", "NULLABLE")
-            arcpy.AddField_management(aggregateStats, "INVSIMPSON", "DOUBLE", 6, 2, "", "", "NULLABLE")
-            arcpy.AddField_management(aggregateStats, "MEANPATCH", "DOUBLE", 6, 2, "", "", "NULLABLE")
+            arcpy.AddField_management(aggregateStats, "NUM_COVERS", "SHORT")
+            arcpy.AddField_management(aggregateStats, "SHANNON", "DOUBLE", 6, 2)
+            arcpy.AddField_management(aggregateStats, "INVSIMPSON", "DOUBLE", 6, 2)
+            arcpy.AddField_management(aggregateStats, "MEANPATCH", "DOUBLE", 6, 2)
 
             unitNo = 0
             with arcpy.da.UpdateCursor(aggregateStats, ['NUM_COVERS', 'SHANNON', 'INVSIMPSON', 'MEANPATCH']) as cursor:

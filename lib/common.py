@@ -358,3 +358,48 @@ def getFreeDiskSpaceGb(dirname):
     else:
         st = os.statvfs(dirname)
         return st.f_bavail * st.f_frsize / 1024 / 1024 / 1024
+
+
+def indentXML(elem, level=0, more_sibs=False):
+
+    ''' Taken from https://stackoverflow.com/questions/749796/pretty-printing-xml-in-python '''
+
+    i = "\n"
+    if level:
+        i += (level - 1) * '  '
+    num_kids = len(elem)
+    if num_kids:
+        if not elem.text or not elem.text.strip():
+            elem.text = i + "  "
+            if level:
+                elem.text += '  '
+        count = 0
+        for kid in elem:
+            indentXML(kid, level + 1, count < num_kids - 1)
+            count += 1
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+            if more_sibs:
+                elem.tail += '  '
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
+            if more_sibs:
+                elem.tail += '  '
+
+
+def addPath(obj, folder):
+
+    ''' Joins the folder path onto each of the objects' properties '''
+
+    for attr, filename in six.iteritems(obj.__dict__):
+
+        # Add file name to folder path
+        filename = os.path.join(folder, filename)
+        
+        # Re-set the object's attribute value
+        setattr(obj, attr, filename)
+
+    return obj
+
+
