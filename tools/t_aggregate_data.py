@@ -28,6 +28,9 @@ def function(params):
 
         common.runSystemChecks()
 
+        if outputFolder == 'Not set':
+            outputFolder = os.path.join(arcpy.env.scratchFolder, 'AggregatedData')
+
         # Create output folder
         if not os.path.exists(outputFolder):
             os.mkdir(outputFolder)
