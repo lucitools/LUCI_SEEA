@@ -2,6 +2,7 @@
 Create polygon grid tool
 '''
 import arcpy
+import os
 import LUCI.lib.common as common
 import LUCI.solo.create_grid as create_grid
 
@@ -30,6 +31,9 @@ def function(params):
             raise
 
         common.runSystemChecks()
+
+        if outGrid == 'Not set':
+            outGrid = os.path.join(arcpy.env.scratchFolder, 'outputGrid.shp')
 
         try:
             # Call create grid function
