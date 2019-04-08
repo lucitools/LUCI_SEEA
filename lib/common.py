@@ -189,36 +189,6 @@ def runSystemChecks(folder=None, rerun=False):
     # Set overwrite output
     arcpy.env.overwriteOutput = True
 
-    # Rename config.xml to user_settings.xml. This piece of code is temporary (to make sure that everyone is using the correct file to store user settings).
-    # This block of code can be removed after 31/10/18 as this code should have been run by then by all users. KM
-    configXML = os.path.join(configuration.luciPath, 'config.xml')
-    userSettingsXML = configuration.userSettingsFile
-    if not os.path.exists(userSettingsXML):
-        if os.path.exists(configXML):
-            os.rename(configXML, userSettingsXML)
-
-            # Change refreshModules tag to developerMode tag
-            with open(userSettingsXML, "r+") as f:
-                data = f.read()
-                if 'refreshModules' in data:
-                    data = data.replace('refreshModules', 'developerMode')
-                    f.seek(0)
-                    f.write(data)
-                    f.truncate()
-    # End of temporary code block
-
-    # Check that LUCI is not installed in a directory path which contains spaces
-    if " " in configuration.luciPath:
-        log.error("The LUCI source files path (" + configuration.luciPath + ") contains spaces.")
-        log.error("Please move the LUCI source files to a path without spaces, as many ArcGIS tools will not work correctly otherwise")
-        sys.exit()
-
-    # Check that LUCI is not installed in a OneDrive or Dropbox directory (as this can cause problems with files being locked when syncing to server)
-    if "OneDrive" in configuration.luciPath or "Dropbox" in configuration.luciPath:
-        log.error("The LUCI source files have been installed in a OneDrive or Dropbox folder (" + configuration.luciPath + ").")
-        log.error("Please move the LUCI source files to a location outside a OneDrive or Dropbox folder as file locking problems may occur.")
-        sys.exit()
-
     # Check spatial analyst licence is available
     if arcpy.CheckExtension("Spatial") == "Available":
         arcpy.CheckOutExtension("Spatial")

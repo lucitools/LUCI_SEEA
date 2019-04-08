@@ -58,17 +58,7 @@ class AggregateData(object):
         param.datatype = u'Folder'
         params.append(param)
 
-        # 2 Output_Layer_Shannon_Index
-        param = arcpy.Parameter()
-        param.name = u'Output_Layer_Shannon_Index'
-        param.displayName = u'Output_Layer_Shannon_Index'
-        param.parameterType = 'Derived'
-        param.direction = 'Output'
-        param.datatype = u'Feature Layer'
-        param.symbology = os.path.join(configuration.displayPath, "Shannon.lyr")
-        params.append(param)
-
-        # 3 Output_Layer_Inverse_Simpson_Index
+        # 2 Output_Layer_Inverse_Simpson_Index
         param = arcpy.Parameter()
         param.name = u'Output_Layer_Inverse_Simpson_Index'
         param.displayName = u'Output_Layer_Inverse_Simpson_Index'
@@ -76,6 +66,16 @@ class AggregateData(object):
         param.direction = 'Output'
         param.datatype = u'Feature Layer'
         param.symbology = os.path.join(configuration.displayPath, "Inverse_Simpson.lyr")
+        params.append(param)
+
+        # 3 Output_Layer_Shannon_Index
+        param = arcpy.Parameter()
+        param.name = u'Output_Layer_Shannon_Index'
+        param.displayName = u'Output_Layer_Shannon_Index'
+        param.parameterType = 'Derived'
+        param.direction = 'Output'
+        param.datatype = u'Feature Layer'
+        param.symbology = os.path.join(configuration.displayPath, "Shannon.lyr")
         params.append(param)
 
         # 4 Output_Layer_Num_Covers

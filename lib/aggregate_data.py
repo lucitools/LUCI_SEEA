@@ -127,7 +127,12 @@ def function(outputFolder, dataSetsToAggregate, aggregateMask, maskFullyWithinSA
             log.info("Completed iteration through aggregation units for " + str(dataSet))
 
             # Determine output file name for data set statistics
-            statsFilename = os.path.basename(dataSet)[0:-4] + '_stats.shp'
+            baseDataSetName = os.path.basename(dataSet).replace('-', '')
+            if baseDataSetName[0] == '{':
+                statsFilename = baseDataSetName[1:-1] + '_stats.shp'
+            else:
+                statsFilename = baseDataSetName[0:-4] + '_stats.shp'
+
             aggregateStats = os.path.join(outputFolder, statsFilename)
 
             arcpy.CopyFeatures_management(aggregateMaskClipped, aggregateStats)
