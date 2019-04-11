@@ -32,7 +32,7 @@ def function(params):
 
         common.runSystemChecks()
 
-        if outGrid == 'Not set':
+        if outGrid is None: # i.e. the parameter is a derived zip file (employed on server version of tool) and has no parameter value
             outGrid = os.path.join(arcpy.env.scratchFolder, 'outputGrid.shp')
 
         try:
@@ -41,6 +41,8 @@ def function(params):
             
             # Set the output parameter
             arcpy.SetParameter(1, outGrid)
+
+            return outGrid
 
         except Exception:
             arcpy.AddError("Create grid function failed")
