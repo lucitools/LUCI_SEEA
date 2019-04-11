@@ -32,7 +32,8 @@ def function(params):
 
         common.runSystemChecks()
 
-        if outGrid is None: # i.e. the parameter is a derived zip file (employed on server version of tool) and has no parameter value
+        # Check if the output grid parameter is a derived zip file (employed on server version of tool)
+        if outGrid is None or os.path.basename(outGrid) == 'outputGrid.zip':
             outGrid = os.path.join(arcpy.env.scratchFolder, 'outputGrid.shp')
 
         try:
