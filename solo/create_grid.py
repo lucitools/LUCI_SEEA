@@ -76,7 +76,7 @@ def function(inputExtent, outGrid, cellSize, proportionCellArea, gridCoverage, g
             arcpy.AddMessage('Selecting cells...')
             arcpy.Select_analysis(in_features=gridMinusIntersection,
                                   out_feature_class=forRemovalWithEdges,
-                                  where_clause='"Area" >= ' + str(cellArea) + ' * ' + str(gridBoundaryCellsPercent / 100))
+                                  where_clause='ROUND("Area", 0) >= ' + str(cellArea) + ' * ' + str(gridBoundaryCellsPercent / 100))
 
             # Perform spatial join so that we only get full cells
             arcpy.AddMessage('Spatial join...')
