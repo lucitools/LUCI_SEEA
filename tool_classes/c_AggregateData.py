@@ -128,11 +128,11 @@ class AggregateData(object):
         # 9 Only_Consider_Agg_Units_Fully_Within_Study_Area
         param = arcpy.Parameter()
         param.name = u'Only_Consider_Agg_Units_Fully_Within_Study_Area'
-        param.displayName = u'Only consider aggregation units which fully lie within the study_area'
+        param.displayName = u'Only consider aggregation units which fully lie within the study area'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'Boolean'
-        param.value = u'True'
+        param.value = u'False'
         params.append(param)
 
         return params
