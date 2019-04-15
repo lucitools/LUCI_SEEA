@@ -32,9 +32,6 @@ def function(params):
 
         common.runSystemChecks()
 
-        if arcpy.ProductInfo() == "ArcServer":
-            cellSize = cellSize * 1000 # Convert from kilometres to metres
-
         # Check if the output grid parameter is a derived zip file (employed on server version of tool)
         if outGrid is None or os.path.basename(outGrid) == 'outputGrid.zip':
             outGrid = os.path.join(arcpy.env.scratchFolder, 'outputGrid.shp')
@@ -46,7 +43,7 @@ def function(params):
             # Set the output parameter
             arcpy.SetParameter(1, outGrid)
 
-            return outGrid
+            return inputExtent, outGrid
 
         except Exception:
             arcpy.AddError("Create grid function failed")

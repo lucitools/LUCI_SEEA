@@ -113,7 +113,7 @@ class CreateDataAggregationGrid(object):
         param.parameterType = 'Optional'
         param.direction = 'Input'
         param.datatype = u'Double'
-        param.value = u'1000'
+        param.value = u'100'
         params.append(param)
 
         # 5 Proportion_cell_area
