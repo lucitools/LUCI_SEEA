@@ -140,11 +140,11 @@ class CreateDataAggregationGrid(object):
         # 7 Grid_boundary_cells_percent
         param = arcpy.Parameter()
         param.name = u'Grid_boundary_cells_percent'
-        param.displayName = u'Percentage area for grid cells on boundary'
+        param.displayName = u'Percentage of underlying land cover area for grid cells on boundary'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'Double'
-        param.value = u'0'
+        param.value = u'100'
         params.append(param)
 
         # 8 Buffer_radius__projection_units

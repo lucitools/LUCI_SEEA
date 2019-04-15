@@ -71,12 +71,20 @@ def function(inputExtent, outGrid, cellSize, proportionCellArea, gridCoverage, g
             arcpy.AddField_management(gridMinusIntersection, 'Area', "DOUBLE")
             arcpy.CalculateField_management(gridMinusIntersection, 'Area', "!SHAPE.AREA!", "PYTHON_9.3")
 
-            # Select cells by area
+            # Calculate cell size
             cellArea = cellSize * cellSize
-            arcpy.AddMessage('Selecting cells...')
+
+            # Determine minimum area of cells in gridMinusIntersection that should be removed 
+            cellAreaThreshold = cellArea * (100 - gridBoundaryCellsPercent) / 100
+
+            # Bug fix - cells were not being removed when they should be due to rounding errors
+            cellAreaThreshold = cellAreaThreshold * 0.99995
+
+            # Select cells by area
+            arcpy.AddMessage(str(cellAreaThreshold))
             arcpy.Select_analysis(in_features=gridMinusIntersection,
                                   out_feature_class=forRemovalWithEdges,
-                                  where_clause='ROUND("Area", 0) >= ' + str(cellArea) + ' * ' + str(gridBoundaryCellsPercent / 100))
+                                  where_clause='"Area" >= ' + str(cellAreaThreshold))
 
             # Perform spatial join so that we only get full cells
             arcpy.AddMessage('Spatial join...')
