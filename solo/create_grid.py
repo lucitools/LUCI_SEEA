@@ -81,7 +81,6 @@ def function(inputExtent, outGrid, cellSize, proportionCellArea, gridCoverage, g
             cellAreaThreshold = cellAreaThreshold * 0.99995
 
             # Select cells by area
-            arcpy.AddMessage(str(cellAreaThreshold))
             arcpy.Select_analysis(in_features=gridMinusIntersection,
                                   out_feature_class=forRemovalWithEdges,
                                   where_clause='"Area" >= ' + str(cellAreaThreshold))

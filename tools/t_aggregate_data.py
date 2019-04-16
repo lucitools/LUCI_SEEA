@@ -1,7 +1,6 @@
 import arcpy
-import sys
 import os
-import configuration
+
 import LUCI.lib.log as log
 import LUCI.lib.common as common
 import LUCI.lib.aggregate_data as aggregate_data
@@ -20,16 +19,18 @@ def function(params):
         pText = common.paramsAsText(params)
 
         # Get inputs
-        outputFolder = pText[1]
+        if params[1].name == 'Output_folder':
+            outputFolder = pText[1]
+        elif params[1].name == 'Aggregated_data':
+            outputFolder = os.path.join(arcpy.env.scratchFolder, 'AggregatedData')
+            aggregatedData = pText[1]
+        
         dataToAggregate = pText[6]
         classificationColumn = pText[7]
         aggregateMask = pText[8]
         maskFullyWithinSAM = common.strToBool(pText[9])
 
         common.runSystemChecks()
-
-        if outputFolder == 'Not set':
-            outputFolder = os.path.join(arcpy.env.scratchFolder, 'AggregatedData')
 
         # Create output folder
         if not os.path.exists(outputFolder):
@@ -55,11 +56,12 @@ def function(params):
         arcpy.CopyFeatures_management(outputStats[0], meanPatch)
         arcpy.CopyFeatures_management(outputStats[0], numCovers)
 
-        # NB No output folder parameter so numbers are shifted back one
-        arcpy.SetParameter(1, InvSimpson)
-        arcpy.SetParameter(2, Shannon)
-        arcpy.SetParameter(3, meanPatch)
-        arcpy.SetParameter(4, numCovers)
+        arcpy.SetParameter(2, InvSimpson)
+        arcpy.SetParameter(3, Shannon)
+        arcpy.SetParameter(4, meanPatch)
+        arcpy.SetParameter(5, numCovers)
+
+        return outputStats[0], InvSimpson, Shannon, meanPatch, numCovers
 
         log.info("Aggregation operations completed successfully")
 
