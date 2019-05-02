@@ -71,7 +71,7 @@ class AggregateData(object):
         # 3 Output_Layer_Inverse_Simpson_Index
         param = arcpy.Parameter()
         param.name = u'Output_Layer_Inverse_Simpson_Index'
-        param.displayName = u'Output_Layer_Inverse_Simpson_Index'
+        param.displayName = u'Inverse Simpson index'
         param.parameterType = 'Derived'
         param.direction = 'Output'
         param.datatype = u'Feature Layer'
@@ -81,7 +81,7 @@ class AggregateData(object):
         # 4 Output_Layer_Shannon_Index
         param = arcpy.Parameter()
         param.name = u'Output_Layer_Shannon_Index'
-        param.displayName = u'Output_Layer_Shannon_Index'
+        param.displayName = u'Shannon index'
         param.parameterType = 'Derived'
         param.direction = 'Output'
         param.datatype = u'Feature Layer'
@@ -91,7 +91,7 @@ class AggregateData(object):
         # 5 Output_Layer_Num_Covers
         param = arcpy.Parameter()
         param.name = u'Output_Layer_Num_Covers'
-        param.displayName = u'Output_Layer_Num_Covers'
+        param.displayName = u'Number of covers'
         param.parameterType = 'Derived'
         param.direction = 'Output'
         param.datatype = u'Feature Layer'
@@ -101,7 +101,7 @@ class AggregateData(object):
         # 6 Output_Layer_Mean_Patch_Size
         param = arcpy.Parameter()
         param.name = u'Output_Layer_Mean_Patch_Size'
-        param.displayName = u'Output_Layer_Mean_Patch_Size'
+        param.displayName = u'Mean patch size'
         param.parameterType = 'Derived'
         param.direction = 'Output'
         param.datatype = u'Feature Layer'
