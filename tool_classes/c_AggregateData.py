@@ -49,7 +49,17 @@ class AggregateData(object):
         param.datatype = u'Boolean'
         params.append(param)
 
-        # 1 Output_folder
+        # 1 Run_system_checks
+        param = arcpy.Parameter()
+        param.name = u'Run_system_checks'
+        param.displayName = u'Run_system_checks'
+        param.parameterType = 'Derived'
+        param.direction = 'Output'
+        param.datatype = u'Boolean'
+        param.value = u'True'
+        params.append(param)
+
+        # 2 Output_folder
         param = arcpy.Parameter()
         param.name = u'Output_folder'
         param.displayName = u'Output folder'
@@ -58,7 +68,7 @@ class AggregateData(object):
         param.datatype = u'Folder'
         params.append(param)
 
-        # 2 Output_Layer_Inverse_Simpson_Index
+        # 3 Output_Layer_Inverse_Simpson_Index
         param = arcpy.Parameter()
         param.name = u'Output_Layer_Inverse_Simpson_Index'
         param.displayName = u'Output_Layer_Inverse_Simpson_Index'
@@ -68,7 +78,7 @@ class AggregateData(object):
         param.symbology = os.path.join(configuration.displayPath, "Inverse_Simpson.lyr")
         params.append(param)
 
-        # 3 Output_Layer_Shannon_Index
+        # 4 Output_Layer_Shannon_Index
         param = arcpy.Parameter()
         param.name = u'Output_Layer_Shannon_Index'
         param.displayName = u'Output_Layer_Shannon_Index'
@@ -78,7 +88,7 @@ class AggregateData(object):
         param.symbology = os.path.join(configuration.displayPath, "Shannon.lyr")
         params.append(param)
 
-        # 4 Output_Layer_Num_Covers
+        # 5 Output_Layer_Num_Covers
         param = arcpy.Parameter()
         param.name = u'Output_Layer_Num_Covers'
         param.displayName = u'Output_Layer_Num_Covers'
@@ -88,7 +98,7 @@ class AggregateData(object):
         param.symbology = os.path.join(configuration.displayPath, "num_covers.lyr")
         params.append(param)
 
-        # 5 Output_Layer_Mean_Patch_Size
+        # 6 Output_Layer_Mean_Patch_Size
         param = arcpy.Parameter()
         param.name = u'Output_Layer_Mean_Patch_Size'
         param.displayName = u'Output_Layer_Mean_Patch_Size'
@@ -98,7 +108,7 @@ class AggregateData(object):
         param.symbology = os.path.join(configuration.displayPath, "meanpatchsize.lyr")
         params.append(param)
 
-        # 6 Data_to_aggregate
+        # 7 Data_to_aggregate
         param = arcpy.Parameter()
         param.name = u'Data_to_aggregate'
         param.displayName = u'Data to aggregate'
@@ -107,7 +117,7 @@ class AggregateData(object):
         param.datatype = u'Feature Class'
         params.append(param)
 
-        # 7 Classification_column
+        # 8 Classification_column
         param = arcpy.Parameter()
         param.name = u'Classification_column'
         param.displayName = u'Classification column'
@@ -116,7 +126,7 @@ class AggregateData(object):
         param.datatype = u'String'
         params.append(param)
 
-        # 8 Aggregation_units
+        # 9 Aggregation_units
         param = arcpy.Parameter()
         param.name = u'Aggregation_units'
         param.displayName = u'Aggregation units'
@@ -125,7 +135,7 @@ class AggregateData(object):
         param.datatype = u'Feature Class'
         params.append(param)
 
-        # 9 Only_Consider_Agg_Units_Fully_Within_Study_Area
+        # 10 Only_Consider_Agg_Units_Fully_Within_Study_Area
         param = arcpy.Parameter()
         param.name = u'Only_Consider_Agg_Units_Fully_Within_Study_Area'
         param.displayName = u'Only consider aggregation units which fully lie within the study area'

@@ -16,21 +16,24 @@ def function(params):
 
         try:
             # Get inputs
-            inputExtent = pText[2]
-            outGrid = pText[3]
-            cellSize = float(pText[4])
-            proportionCellArea = float(pText[5])
-            gridCoverage = pText[6]
-            gridBoundaryCellsPercent = float(pText[7])
-            bufferRadius = float(pText[8])
-            align = common.strToBool(pText[9])
-            sigFigs = int(pText[10])
+            runSystemChecks = common.strToBool(pText[1])
+            inputExtent = pText[3]
+            outGrid = pText[4]
+            cellSize = float(pText[5])
+            proportionCellArea = float(pText[6])
+            gridCoverage = pText[7]
+            gridBoundaryCellsPercent = float(pText[8])
+            bufferRadius = float(pText[9])
+            align = common.strToBool(pText[10])
+            sigFigs = int(pText[11])
 
         except Exception:
             arcpy.AddError("Problem with input variables")
             raise
 
-        common.runSystemChecks()
+        # System checks and setup
+        if runSystemChecks:
+            common.runSystemChecks()
 
         # Check if the output grid parameter is a derived zip file (employed on server version of tool)
         if outGrid is None or os.path.basename(outGrid) == 'outputGrid.zip':
@@ -41,7 +44,7 @@ def function(params):
             create_grid.function(inputExtent, outGrid, cellSize, proportionCellArea, gridCoverage, gridBoundaryCellsPercent, bufferRadius, align, sigFigs)
             
             # Set the output parameter
-            arcpy.SetParameter(1, outGrid)
+            arcpy.SetParameter(2, outGrid)
 
             return inputExtent, outGrid
 

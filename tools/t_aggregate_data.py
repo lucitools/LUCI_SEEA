@@ -19,18 +19,21 @@ def function(params):
         pText = common.paramsAsText(params)
 
         # Get inputs
-        if params[1].name == 'Output_folder':
-            outputFolder = pText[1]
-        elif params[1].name == 'Aggregated_data':
+        if params[2].name == 'Output_folder':
+            outputFolder = pText[2]
+        elif params[2].name == 'Aggregated_data':
             outputFolder = os.path.join(arcpy.env.scratchFolder, 'AggregatedData')
-            aggregatedData = pText[1]
+            aggregatedData = pText[2]
         
-        dataToAggregate = pText[6]
-        classificationColumn = pText[7]
-        aggregateMask = pText[8]
-        maskFullyWithinSAM = common.strToBool(pText[9])
+        runSystemChecks = common.strToBool(pText[1])
+        dataToAggregate = pText[7]
+        classificationColumn = pText[8]
+        aggregateMask = pText[9]
+        maskFullyWithinSAM = common.strToBool(pText[10])
 
-        common.runSystemChecks()
+        # System checks and setup
+        if runSystemChecks:
+            common.runSystemChecks()
 
         # Create output folder
         if not os.path.exists(outputFolder):
@@ -56,12 +59,12 @@ def function(params):
         arcpy.CopyFeatures_management(outputStats[0], meanPatch)
         arcpy.CopyFeatures_management(outputStats[0], numCovers)
 
-        arcpy.SetParameter(2, InvSimpson)
-        arcpy.SetParameter(3, Shannon)
-        arcpy.SetParameter(4, meanPatch)
+        arcpy.SetParameter(3, InvSimpson)
+        arcpy.SetParameter(4, Shannon)
         arcpy.SetParameter(5, numCovers)
+        arcpy.SetParameter(6, meanPatch)
 
-        return outputStats[0], InvSimpson, Shannon, meanPatch, numCovers
+        return outputStats[0], InvSimpson, Shannon, numCovers, meanPatch
 
         log.info("Aggregation operations completed successfully")
 

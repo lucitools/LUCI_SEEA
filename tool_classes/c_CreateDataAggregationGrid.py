@@ -78,7 +78,17 @@ class CreateDataAggregationGrid(object):
         param.datatype = u'Boolean'
         params.append(param)
 
-        # 1 Output_grid
+        # 1 Run_system_checks
+        param = arcpy.Parameter()
+        param.name = u'Run_system_checks'
+        param.displayName = u'Run_system_checks'
+        param.parameterType = 'Derived'
+        param.direction = 'Output'
+        param.datatype = u'Boolean'
+        param.value = u'True'
+        params.append(param)
+
+        # 2 Output_grid
         param = arcpy.Parameter()
         param.name = u'Output_grid'
         param.displayName = u'Output grid'
@@ -88,7 +98,7 @@ class CreateDataAggregationGrid(object):
         param.symbology = os.path.join(configuration.displayPath, "grid.lyr")
         params.append(param)
 
-        # 2 Input_extent_feature_class
+        # 3 Input_extent_feature_class
         param = arcpy.Parameter()
         param.name = u'Input_extent_feature_class'
         param.displayName = u'Boundary feature class'
@@ -97,7 +107,7 @@ class CreateDataAggregationGrid(object):
         param.datatype = u'Feature Layer'
         params.append(param)
 
-        # 3 Output_grid_feature_class
+        # 4 Output_grid_feature_class
         param = arcpy.Parameter()
         param.name = u'Output_grid_feature_class'
         param.displayName = u'Output grid feature class'
@@ -106,7 +116,7 @@ class CreateDataAggregationGrid(object):
         param.datatype = u'Feature Layer'
         params.append(param)
 
-        # 4 Cell_size
+        # 5 Cell_size
         param = arcpy.Parameter()
         param.name = u'Cell_size'
         param.displayName = u'Cell size in projection units'
@@ -116,7 +126,7 @@ class CreateDataAggregationGrid(object):
         param.value = u'100'
         params.append(param)
 
-        # 5 Proportion_cell_area
+        # 6 Proportion_cell_area
         param = arcpy.Parameter()
         param.name = u'Proportion_cell_area'
         param.displayName = u'Proportion of total rectangular extent area for each cell (value between 0 and 1; only used if cell size is 0)'
@@ -126,7 +136,7 @@ class CreateDataAggregationGrid(object):
         param.value = u'0'
         params.append(param)
 
-        # 6 Grid_coverage
+        # 7 Grid_coverage
         param = arcpy.Parameter()
         param.name = u'Grid_coverage'
         param.displayName = u'Grid coverage'
@@ -137,7 +147,7 @@ class CreateDataAggregationGrid(object):
         param.filter.list = [u'Rectangular, covering full extent of boundary feature class', u'Grid covers area bounded by boundary feature class only']
         params.append(param)
 
-        # 7 Grid_boundary_cells_percent
+        # 8 Grid_boundary_cells_percent
         param = arcpy.Parameter()
         param.name = u'Grid_boundary_cells_percent'
         param.displayName = u'Percentage of underlying land cover area for grid cells on boundary'
@@ -147,7 +157,7 @@ class CreateDataAggregationGrid(object):
         param.value = u'100'
         params.append(param)
 
-        # 8 Buffer_radius__projection_units
+        # 9 Buffer_radius__projection_units
         param = arcpy.Parameter()
         param.name = u'Buffer_radius__projection_units'
         param.displayName = u'Buffer radius (in projection units)'
@@ -158,7 +168,7 @@ class CreateDataAggregationGrid(object):
         param.category = u'Extent parameters'
         params.append(param)
 
-        # 9 Align_to_grid
+        # 10 Align_to_grid
         param = arcpy.Parameter()
         param.name = u'Align_to_grid'
         param.displayName = u'Align to grid'
@@ -169,7 +179,7 @@ class CreateDataAggregationGrid(object):
         param.category = u'Extent parameters'
         params.append(param)
 
-        # 10 Significant_figures
+        # 11 Significant_figures
         param = arcpy.Parameter()
         param.name = u'Significant_figures'
         param.displayName = u'Significant figures'
