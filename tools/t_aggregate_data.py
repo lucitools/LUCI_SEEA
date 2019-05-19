@@ -17,6 +17,7 @@ def function(params):
 
     try:
         pText = common.paramsAsText(params)
+        
 
         # Get inputs
         if params[2].name == 'Output_folder':
