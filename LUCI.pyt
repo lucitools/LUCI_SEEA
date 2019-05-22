@@ -37,6 +37,14 @@ import LUCI.tool_classes.c_AggregateData as c_AggregateData
 refresh_modules(c_AggregateData)
 AggregateData = c_AggregateData.AggregateData
 
+###################
+### Other tools ###
+###################
+
+import LUCI.tool_classes.c_RUSLE as c_RUSLE
+refresh_modules(c_RUSLE)
+RUSLE = c_RUSLE.RUSLE
+
 ##########################
 ### Toolbox definition ###
 ##########################
@@ -46,4 +54,4 @@ class Toolbox(object):
     def __init__(self):
         self.label = u'LUCI freely available'
         self.alias = u'LUCI'
-        self.tools = [CreateDataAggregationGrid, AggregateData]
+        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE]
