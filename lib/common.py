@@ -1,4 +1,5 @@
 import arcpy
+from arcpy.sa import Reclassify, RemapRange
 import os
 import sys
 import shutil
@@ -372,4 +373,95 @@ def addPath(obj, folder):
 
     return obj
 
+def checkCoverage(studyAreaMask, raster):
 
+    # Checks the coverage of a raster against the study area mask with some buffer (2 * cellsize)
+
+    maskExtent = arcpy.Describe(studyAreaMask).extent
+    rasterExtent = arcpy.Describe(raster).extent
+
+    # Find raster cellsize
+    cellSize = int(float(arcpy.GetRasterProperties_management(raster, "CELLSIZEX").getOutput(0)))
+
+    # Set buffer distance
+    bufferDist = 2.0 * cellSize
+
+    # If coverage is the same, diffCoverage is False
+    diffCoverage = False
+
+    # Check raster extent against mask extent
+    if (rasterExtent.XMin > maskExtent.XMin - bufferDist or rasterExtent.XMax < maskExtent.XMax + bufferDist
+    or  rasterExtent.YMin > maskExtent.YMin - bufferDist or rasterExtent.YMax < maskExtent.YMax + bufferDist):
+
+        # Difference between raster extent and mask extent
+        diffCoverage = True
+
+    return diffCoverage
+
+def extractRasterMask(raster):
+
+    # Takes a raster and returns its mask as a polygon
+
+    # Set overwrite output
+    arcpy.env.overwriteOutput = True
+
+    prefix = os.path.join(arcpy.env.scratchGDB, "mask_")
+    rasterMask = prefix + "rasmask"
+    polyMask = prefix + "polymask"
+
+    maskTemp = Reclassify(raster, "Value", RemapRange([[-999999.9, 999999.9, 1]]), "NODATA")
+    maskTemp.save(rasterMask)
+
+    arcpy.RasterToPolygon_conversion(rasterMask, polyMask, "NO_SIMPLIFY", "VALUE")
+
+    return polyMask
+
+def checkCoverage(maskA, maskB):
+
+    # Checks the coverage between maskA and maskB
+
+    # Set temporary variables
+    prefix = os.path.join(arcpy.env.scratchGDB, "cover_")
+    maskACoverage = prefix + "maskACoverage"
+
+    percOut = 0
+
+    if arcpy.ProductInfo() == 'ArcInfo': # Advanced License
+
+        arcpy.AddMessage('ArcInfo license present. Running consistency checks.')
+
+        # Calculate total area of the coverage (study area or contributing area)
+        arcpy.AddField_management(maskB, "Area_ha", "DOUBLE")
+        exp = "!SHAPE.AREA@HECTARES!"
+        arcpy.CalculateField_management(maskB, "Area_ha", exp, "PYTHON_9.3")
+
+        maskBVal = 0
+        for row in arcpy.da.SearchCursor(maskB, ["Area_ha"]):        
+            maskBVal += float(row[0])
+
+        # Use symmetrical difference to find which areas in maskA and maskB do not overlap
+        arcpy.SymDiff_analysis(maskA, maskB, maskACoverage)
+
+        # Check if there are non-overlapping areas in the land use and coverage
+        rows = [row for row in arcpy.da.SearchCursor(maskACoverage, "*")]
+        numFeatures = len(rows)
+
+        if numFeatures != 0: # There is a discrepancy between maskA and maskB
+
+            # Calculate the area of the polygons in the discrepancy
+            arcpy.AddField_management(maskACoverage, "Sliver", "DOUBLE")
+            exp = "!SHAPE.AREA@HECTARES!"
+            arcpy.CalculateField_management(maskACoverage, "Sliver", exp, "PYTHON_9.3")
+
+            area = 0
+            for row in arcpy.da.SearchCursor(maskACoverage, ["Sliver"]):
+                area += float(row[0])
+
+            # Calculate percentage of the coverage area that the discrepancy covers
+            percOut = area / maskBVal * 100
+
+        return percOut
+
+    else:
+        log.warning('Coverage discrepancies between soil, land use, and coverage extent not checked as advanced license not present.')
+        log.warning('Please ensure the soil and land use shapefile cover at least 97.5 percent of the coverage extent')
