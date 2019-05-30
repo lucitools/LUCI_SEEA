@@ -32,7 +32,7 @@ class RUSLE(object):
             input_validation.checkFilePaths(self)
     
     def __init__(self):
-        self.label = u'RUSLE'
+        self.label = u'Calculate soil loss (RUSLE)'
         self.canRunInBackground = False
 
     def getParameterInfo(self):
