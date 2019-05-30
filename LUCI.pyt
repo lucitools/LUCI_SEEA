@@ -45,6 +45,10 @@ import LUCI.tool_classes.c_RUSLE as c_RUSLE
 refresh_modules(c_RUSLE)
 RUSLE = c_RUSLE.RUSLE
 
+import LUCI.tool_classes.c_LandCoverChange as c_LandCoverChange
+refresh_modules(c_LandCoverChange)
+LandCoverChange = c_LandCoverChange.LandCoverChange
+
 ##########################
 ### Toolbox definition ###
 ##########################
@@ -54,4 +58,4 @@ class Toolbox(object):
     def __init__(self):
         self.label = u'LUCI freely available'
         self.alias = u'LUCI'
-        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE]
+        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, LandCoverChange]
