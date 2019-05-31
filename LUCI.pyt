@@ -41,13 +41,20 @@ AggregateData = c_AggregateData.AggregateData
 ### Other tools ###
 ###################
 
+# Revised Universal Soil Loss Equation tool
 import LUCI.tool_classes.c_RUSLE as c_RUSLE
 refresh_modules(c_RUSLE)
 RUSLE = c_RUSLE.RUSLE
 
-import LUCI.tool_classes.c_LandCoverChange as c_LandCoverChange
-refresh_modules(c_LandCoverChange)
-LandCoverChange = c_LandCoverChange.LandCoverChange
+# Calculate land extent accounts tool
+import LUCI.tool_classes.c_LandAccounts as c_LandAccounts
+refresh_modules(c_LandAccounts)
+LandCoverChange = c_LandAccounts.LandAccounts
+
+# tool for calculating species richness from presence/absence shapefiles
+import LUCI.tool_classes.c_PASpeciesRichness as c_PASpeciesRichness
+refresh_modules(c_PASpeciesRichness)
+PASpeciesRichness = c_PASpeciesRichness.PASpeciesRichness
 
 ##########################
 ### Toolbox definition ###
@@ -58,4 +65,4 @@ class Toolbox(object):
     def __init__(self):
         self.label = u'LUCI freely available'
         self.alias = u'LUCI'
-        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, LandCoverChange]
+        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, LandAccounts,PASpeciesRichness]
