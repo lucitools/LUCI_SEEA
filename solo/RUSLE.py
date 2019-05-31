@@ -15,7 +15,7 @@ from LUCI.lib.external import six # Python 2/3 compatibility module
 from LUCI.lib.refresh_modules import refresh_modules
 refresh_modules([log, common])
 
-def function(outputFolder, studyMask, DEM, soilData, landCoverData, rData, saveFactors):
+def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, landCoverCode, rData, saveFactors):
 
     try:
         # Set temporary variables
@@ -28,6 +28,9 @@ def function(outputFolder, studyMask, DEM, soilData, landCoverData, rData, saveF
         soilBuff = prefix + "soilBuff"
         landCoverBuff = prefix + "landCoverBuff"
         rainBuff = prefix + "rainBuff"
+
+        soilRaster = prefix + "soilRaster"
+        lcRaster = prefix + "lcRaster"
 
         soilResample = prefix + "soilResample"
         lcResample = prefix + "lcResample"
@@ -69,7 +72,12 @@ def function(outputFolder, studyMask, DEM, soilData, landCoverData, rData, saveF
         ####################
 
         # Ensure all inputs are in a projected coordinate system
+        log.info('Checking if all inputs are in a projected coordinate system')
+
         inputs = [DEM, soilData, landCoverData, rData]
+
+        if studyMask is not None:
+            inputs.append(studyMask)
 
         for data in inputs:
             spatialRef = arcpy.Describe(data).spatialReference
@@ -126,21 +134,48 @@ def function(outputFolder, studyMask, DEM, soilData, landCoverData, rData, saveF
         log.info("Clipping inputs down to buffered study area mask")
 
         arcpy.Clip_management(DEM, "#", DEMBuff, samBuff, clipping_geometry="ClippingGeometry")
-        arcpy.Clip_management(soilData, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
-        arcpy.Clip_management(landCoverData, "#", landCoverBuff, samBuff, clipping_geometry="ClippingGeometry")
+        
         arcpy.Clip_management(rData, "#", rainBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        # Resample down to DEM cell size
-        log.info("Resampling inputs down to DEM cell size")
+        # Check if the soil and land cover data are rasters or shapefiles
+        
+        # If shapefile, convert to a raster based on the linking code
+        soilFormat = arcpy.Describe(soilData).dataType
 
+        if soilFormat in ['RasterDataset']:
+            arcpy.Clip_management(soilData, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
+
+        elif soilFormat in ['ShapeFile']:
+            arcpy.PolygonToRaster_conversion(soilData, soilCode, soilRaster, "CELL_CENTER", "", cellsizedem)
+            arcpy.Clip_management(soilRaster, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
+
+        else:
+            log.error('Soil dataset is neither a shapefile or raster, please check input')
+            sys.exit()
+
+        lcFormat = arcpy.Describe(landCoverData).dataType
+
+        if lcFormat in ['RasterDataset']:
+            arcpy.Clip_management(landCoverData, "#", landCoverBuff, samBuff, clipping_geometry="ClippingGeometry")
+
+        elif lcFormat in ['ShapeFile']:
+            arcpy.PolygonToRaster_conversion(landCoverData, landCoverCode, lcRaster, "CELL_CENTER", "", cellsizedem)
+            arcpy.Clip_management(lcRaster, "#", landCoverBuff, samBuff, clipping_geometry="ClippingGeometry")
+
+        else:
+            log.error('Land cover dataset is neither a shapefile or raster, please check input')
+            sys.exit()
+
+        # Resample down to DEM cell size
+        log.info("Resampling inputs down to DEM cell size")        
+
+        resampledRainTemp = arcpy.sa.ApplyEnvironment(rainBuff)
+        resampledRainTemp.save(rainResample)
         resampledSoilTemp = arcpy.sa.ApplyEnvironment(soilBuff)
         resampledSoilTemp.save(soilResample)
 
         resampledLCTemp = arcpy.sa.ApplyEnvironment(landCoverBuff)
         resampledLCTemp.save(lcResample)
-
-        resampledRainTemp = arcpy.sa.ApplyEnvironment(rainBuff)
-        resampledRainTemp.save(rainResample)
 
         # Convert all the input rasters to polygon masks
         log.info("Checking inputs against study area mask")
@@ -230,8 +265,8 @@ def function(outputFolder, studyMask, DEM, soilData, landCoverData, rData, saveF
 
         kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
 
-        arcpy.JoinField_management(soilData, "VALUE", kTable, "MU_GLOBAL")
-        arcpy.CopyRaster_management(soilData, soilJoin)
+        arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
+        arcpy.CopyRaster_management(soilClip, soilJoin)
 
         kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
         kOrigTemp.save(kFactor)
@@ -244,8 +279,8 @@ def function(outputFolder, studyMask, DEM, soilData, landCoverData, rData, saveF
 
         cTable = os.path.join(configuration.tablesPath, "rusle_esacci.dbf")
 
-        arcpy.JoinField_management(landCoverData, "VALUE", cTable, "LC_CODE")
-        arcpy.CopyRaster_management(landCoverData, lcJoin)
+        arcpy.JoinField_management(landCoverClip, "VALUE", cTable, "LC_CODE")
+        arcpy.CopyRaster_management(landCoverClip, lcJoin)
 
         cOrigTemp = Lookup(lcJoin, "CFACTOR")
         cOrigTemp.save(cFactor)

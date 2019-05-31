@@ -101,19 +101,38 @@ class RUSLE(object):
         param.displayName = u'Soil dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
-        param.datatype = u'Raster Layer'
+        param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 7 Land cover
+        # 7 Soil_linking_code
+        param = arcpy.Parameter()
+        param.name = u'Soil_linking_code'
+        param.displayName = u'Soil linking code'
+        param.parameterType = 'Optional'
+        param.direction = 'Input'
+        param.datatype = u'String'        
+        params.append(param)
+
+        # 8 Land_cover
         param = arcpy.Parameter()
         param.name = u'Land_cover'
         param.displayName = u'Land cover dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
-        param.datatype = u'Raster Layer'
+        # param.datatype = u'File'
+        param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 8 Rainfall erosivity
+        # 9 Land_cover_linking_code
+        param = arcpy.Parameter()
+        param.name = u'Land_cover_linking_code'
+        param.displayName = u'Land cover linking code'
+        param.parameterType = 'Optional'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        params.append(param)
+
+        # 10 Rainfall erosivity
         param = arcpy.Parameter()
         param.name = u'Rainfall_erosivity'
         param.displayName = u'Rainfall erosivity dataset'
@@ -122,7 +141,7 @@ class RUSLE(object):
         param.datatype = u'Raster Layer'
         params.append(param)
 
-        # 9 Save_factor_layers
+        # 11 Save_factor_layers
         param = arcpy.Parameter()
         param.name = u'Save_factor_layers'
         param.displayName = u'Save factor layers?'

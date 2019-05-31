@@ -3,7 +3,7 @@ import os
 
 import LUCI.lib.log as log
 import LUCI.lib.common as common
-import LUCI.lib.RUSLE as RUSLE
+import LUCI.solo.RUSLE as RUSLE
 
 from LUCI.lib.refresh_modules import refresh_modules
 refresh_modules([log, common, RUSLE])
@@ -18,9 +18,11 @@ def function(params):
         studyMask = pText[4]
         DEM = pText[5]
         soilData = pText[6]
-        landCoverData = pText[7]
-        rData = pText[8]
-        saveFactors = common.strToBool(pText[9])
+        soilCode = pText[7]
+        landCoverData = pText[8]
+        landCoverCode = pText[9]
+        rData = pText[10]
+        saveFactors = common.strToBool(pText[11])
 
         # System checks and setup
         if runSystemChecks:
@@ -34,7 +36,7 @@ def function(params):
         log.setupLogging(outputFolder)
 
         # Call aggregation function
-        RUSLE.function(outputFolder, studyMask, DEM, soilData, landCoverData, rData, saveFactors)
+        RUSLE.function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, landCoverCode, rData, saveFactors)
 
         # Set up filenames for display purposes
         soilLoss = os.path.join(outputFolder, "soilloss")
