@@ -32,7 +32,7 @@ class LandCoverChange(object):
             input_validation.checkFilePaths(self)
     
     def __init__(self):
-        self.label = u'Calculate land cover accounts'
+        self.label = u'Land extent account tool'
         self.canRunInBackground = False
 
     def getParameterInfo(self):
