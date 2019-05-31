@@ -3,10 +3,10 @@ import os
 
 import LUCI.lib.log as log
 import LUCI.lib.common as common
-import LUCI.solo.landcoverchange as landcoverchange
+import LUCI.solo.landaccounts as landaccounts
 
 from LUCI.lib.refresh_modules import refresh_modules
-refresh_modules([log, common, landcoverchange])
+refresh_modules([log, common, landaccounts])
 
 def function(params):
 
@@ -36,7 +36,7 @@ def function(params):
         log.setupLogging(outputFolder)
 
         # Call aggregation function
-        landcoverchange.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField)
+        landaccounts.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField)
 
         # Set up filenames for display purposes
         LCaccounts = os.path.join(outputFolder, "lcAccount.shp")
@@ -45,8 +45,8 @@ def function(params):
 
         return LCaccounts
 
-        log.info("Land cover change accounting operations completed successfully")
+        log.info("Land extent accounting operations completed successfully")
 
     except Exception:
-        log.exception("Land cover change accounting tool failed")
+        log.exception("Land extent accounting tool failed")
         raise

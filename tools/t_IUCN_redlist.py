@@ -10,28 +10,22 @@ refresh_modules([log, common, IUCNredlist_species])
 
 def function(params):
 
-    class IUCNdata:
-        def __init__(self, dataSet, linkCode):
-            self.dataSet = dataSet
-            self.linkCode = linkCode
-
     try:
         pText = common.paramsAsText(params)
         
-
+        runSystemChecks = common.strToBool(pText[1])
         # Get inputs
         if params[2].name == 'Output_folder':
             outputFolder = pText[2]
-        elif params[2].name == 'Aggregated_data':
-            outputFolder = os.path.join(arcpy.env.scratchFolder, 'AggregatedData')
-            aggregatedData = pText[2]
+        elif params[2].name == 'Species_richness':
+            outputFolder = os.path.join(arcpy.env.scratchFolder,'Species_richness')
+            speciesRichness = pText[2]
         
-        runSystemChecks = common.strToBool(pText[1])
-        dataToAggregate = pText[7]
-        classificationColumn = pText[8]
-        aggregateMask = pText[9]
-        maskFullyWithinSAM = common.strToBool(pText[10])
-
+        IUCN_rl_data = pText[4]
+        studymask = pText[5]
+        speciesdisplayname = pText[6]
+        #aggregateMask = pText[7] # will add optional mask if want to calculate over aggregrate spatial units
+      
         # System checks and setup
         if runSystemChecks:
             common.runSystemChecks()
@@ -43,19 +37,13 @@ def function(params):
         # Set up logging output to file
         log.setupLogging(outputFolder)
 
-        # Initialise variables
-        dataSetsToAggregate = [DataToAggregate(dataToAggregate, classificationColumn)]
 
         # Call aggregation function
         outputStats = aggregate_data.function(outputFolder, dataSetsToAggregate, aggregateMask, maskFullyWithinSAM, dataToAggregate)
 
         # Set up filenames for display purposes
         RareSpeciesRichness = os.path.join(outputFolder, "RareSpeciesRichness.shp")
-        Shannon = os.path.join(outputFolder, "ShannonIndex.shp")
-        meanPatch = os.path.join(outputFolder, "MeanPatchSize.shp")
-        numCovers = os.path.join(outputFolder, "NumCovers.shp")
-
-        arcpy.CopyFeatures_management(outputStats[0], InvSimpson)
+        arcpy.CopyFeatures_management(outputStats[0], RareSpeciesRichness)
 
         arcpy.SetParameter(3, InvSimpson)
         arcpy.SetParameter(4, Shannon)

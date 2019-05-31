@@ -69,7 +69,7 @@ class LandAccounts(object):
 
         # 3 Output_Land_Cover
         param = arcpy.Parameter()
-        param.name = u'Output_Land_Extent_Account'
+        param.name = u'Output_Land_Account'
         param.displayName = u'Land Extent Account'
         param.parameterType = 'Derived'
         param.direction = 'Output'
@@ -79,7 +79,7 @@ class LandAccounts(object):
 
         # 4 Land_cover_option
         param = arcpy.Parameter()
-        param.name = u'Land_cover_option'
+        param.name = u'Land_extent_option'
         param.displayName = u'Land cover input option'
         param.parameterType = 'Required'
         param.direction = 'Input'
@@ -168,7 +168,7 @@ class LandAccounts(object):
 
     def execute(self, parameters, messages):
 
-        import LUCI.tools.t_landcoverchange as t_landcoverchange
-        refresh_modules(t_landcoverchange)
+        import LUCI.tools.t_landaccounts as t_landaccounts
+        refresh_modules(t_landaccounts)
 
-        t_landcoverchange.function(parameters)
+        t_landaccounts.function(parameters)
