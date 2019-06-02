@@ -3,7 +3,7 @@ import os
 import configuration
 from LUCI.lib.refresh_modules import refresh_modules
 
-class CreateDataAggregationGrid(object):
+class PAspeciesRichness(object):
 
     class ToolValidator:
         """Class for validating a tool's parameter values and controlling the behavior of the tool's dialog."""
@@ -187,7 +187,7 @@ class CreateDataAggregationGrid(object):
 
     def execute(self, parameters, messages):
 
-        import LUCI.tools.t_creategrid as t_creategrid
-        refresh_modules(t_creategrid)
+        import LUCI.tools.t_PAspeciesRichness as t_PAspeciesRichness
+        refresh_modules(t_PAspeciesRichness)
 
-        t_creategrid.function(parameters)
+        t_PAspeciesRichness.function(parameters)

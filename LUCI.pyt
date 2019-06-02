@@ -45,14 +45,14 @@ import LUCI.tool_classes.c_RUSLE as c_RUSLE
 refresh_modules(c_RUSLE)
 RUSLE = c_RUSLE.RUSLE
 
-import LUCI.tool_classes.c_LandExtent as c_LandExtent
-refresh_modules(c_LandExtent)
-LandExtent = c_LandExtent.LandExtent
+import LUCI.tool_classes.c_LandAccounts as c_LandAccounts
+refresh_modules(c_LandAccounts)
+LandAccounts = c_LandAccounts.LandAccounts
 
-import LUCI.tool_classes.c_LandExtent as c_LandExtent
-refresh_modules(c_LandExtent)
-LandExtent = c_LandExtent.LandExtent
 
+import LUCI.tool_classes.c_PAspeciesRichness as c_PAspeciesRichness
+refresh_modules(c_PAspeciesRichness)
+PAspeciesRichness = c_PAspeciesRichness.PAspeciesRichness
 
 ##########################
 ### Toolbox definition ###
@@ -63,4 +63,4 @@ class Toolbox(object):
     def __init__(self):
         self.label = u'LUCI freely available'
         self.alias = u'LUCI'
-        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE,LandExtent]
+        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE,LandAccounts,PAspeciesRichness]

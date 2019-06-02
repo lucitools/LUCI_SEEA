@@ -3,10 +3,10 @@ import os
 
 import LUCI.lib.log as log
 import LUCI.lib.common as common
-import LUCI.solo.IUCNredlist_species as IUCNredlist_species
+import LUCI.solo.PAspeciesRichness as PAspeciesRichness
 
 from LUCI.lib.refresh_modules import refresh_modules
-refresh_modules([log, common, IUCNredlist_species])
+refresh_modules([log, common, PAspeciesRichness])
 
 def function(params):
 
@@ -39,18 +39,16 @@ def function(params):
 
 
         # Call aggregation function
-        outputStats = aggregate_data.function(outputFolder, dataSetsToAggregate, aggregateMask, maskFullyWithinSAM, dataToAggregate)
+        outputStats = PAspeciesRIchness.function(outputFolder, dataSetsToAggregate, aggregateMask, maskFullyWithinSAM, dataToAggregate)
 
         # Set up filenames for display purposes
         RareSpeciesRichness = os.path.join(outputFolder, "RareSpeciesRichness.shp")
         arcpy.CopyFeatures_management(outputStats[0], RareSpeciesRichness)
 
-        arcpy.SetParameter(3, InvSimpson)
-        arcpy.SetParameter(4, Shannon)
-        arcpy.SetParameter(5, numCovers)
-        arcpy.SetParameter(6, meanPatch)
+        arcpy.SetParameter(3,SpeciesRichness)
+ 
 
-        return outputStats[0], RareSpeciesRichness
+        return outputStats[0], PAspeciesRIchness
 
         log.info("Rare species richness operations completed successfully")
 
