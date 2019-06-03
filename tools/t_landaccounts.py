@@ -3,10 +3,10 @@ import os
 
 import LUCI.lib.log as log
 import LUCI.lib.common as common
-import LUCI.solo.landaccounts as landaccounts
+import LUCI.solo.land_accounts as land_accounts
 
 from LUCI.lib.refresh_modules import refresh_modules
-refresh_modules([log, common, landaccounts])
+refresh_modules([log, common, land_accounts])
 
 def function(params):
 
@@ -36,7 +36,7 @@ def function(params):
         log.setupLogging(outputFolder)
 
         # Call aggregation function
-        landaccounts.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField)
+        land_accounts.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField)
 
         # Set up filenames for display purposes
         LCaccounts = os.path.join(outputFolder, "lcAccount.shp")
