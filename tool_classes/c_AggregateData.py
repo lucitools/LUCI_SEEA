@@ -32,7 +32,7 @@ class AggregateData(object):
             input_validation.checkFilePaths(self)
     
     def __init__(self):
-        self.label = u'Aggregate data'
+        self.label = u'Calculate aggregate habitat statistics'
         self.canRunInBackground = False
         self.category = "1 Aggregation Tools"
 
