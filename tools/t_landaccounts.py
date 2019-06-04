@@ -14,7 +14,13 @@ def function(params):
         pText = common.paramsAsText(params)
 
         runSystemChecks = common.strToBool(pText[1])
-        outputFolder = pText[2]
+        
+        if params[2].name == 'Output_folder':
+            outputFolder = pText[2]
+        elif params[2].name == 'Land_extent_accounts':
+            outputFolder = os.path.join(arcpy.env.scratchFolder, 'LCaccounts')
+            LCaccounts = pText[2]
+
         lcOption = pText[4]
         inputLC = pText[5]
         openingLC = pText[6]
@@ -36,7 +42,7 @@ def function(params):
         log.setupLogging(outputFolder)
 
         # Call aggregation function
-        land_accounts.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField)
+        LCaccounts = land_accounts.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField)
 
         # Set up filenames for display purposes
         LCaccounts = os.path.join(outputFolder, "lcAccount.shp")

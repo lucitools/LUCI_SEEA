@@ -161,8 +161,10 @@ def function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField
                 for row in cursor:
                     writer.writerow(row)
 
-            log.info('Land cover account csv table created')            
+            log.info('Land cover account csv table created')
         csv_file.close()
+
+        return lcAccount
 
         log.info("Land cover accounting function completed successfully")
 
