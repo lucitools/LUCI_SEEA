@@ -1,7 +1,7 @@
 import arcpy
 import os
 import configuration
-from LUCI.lib.refresh_modules import refresh_modules
+from LUCI_SEEA.lib.refresh_modules import refresh_modules
 
 class PAspeciesRichness(object):
 
@@ -54,7 +54,7 @@ class PAspeciesRichness(object):
             """Modify the messages created by internal validation for each tool parameter.
             This method is called after internal validation."""
 
-            import LUCI.lib.input_validation as input_validation
+            import LUCI_SEEA.lib.input_validation as input_validation
             refresh_modules(input_validation)
             
             input_validation.checkFilePaths(self)
@@ -187,7 +187,7 @@ class PAspeciesRichness(object):
 
     def execute(self, parameters, messages):
 
-        import LUCI.tools.t_PAspeciesRichness as t_PAspeciesRichness
+        import LUCI_SEEA.tools.t_PAspeciesRichness as t_PAspeciesRichness
         refresh_modules(t_PAspeciesRichness)
 
         t_PAspeciesRichness.function(parameters)

@@ -1,5 +1,5 @@
 '''
-configuration.py adds the parent directory of the LUCI repo in sys.path so that modules can be imported using "from LUCI..."
+configuration.py adds the parent directory of the LUCI repo in sys.path so that modules can be imported using "from LUCI_SEEA..."
 '''
 
 import arcpy
@@ -7,29 +7,29 @@ import sys
 import os
 
 try:
-    toolbox = "LUCI"
+    toolbox = "LUCI_SEEA"
 
-    currentPath = os.path.dirname(os.path.abspath(__file__)) # should go to <base path>\LUCI
+    currentPath = os.path.dirname(os.path.abspath(__file__)) # should go to <base path>\LUCI_SEEA
     basePath = os.path.dirname(currentPath)
 
-    luciPath = os.path.normpath(os.path.join(basePath, "LUCI"))
+    luciSEEAPath = os.path.normpath(os.path.join(basePath, "LUCI_SEEA"))
 
-    libPath = os.path.join(luciPath, "lib")
-    logPath = os.path.join(luciPath, "logs")
-    tablesPath = os.path.join(luciPath, "tables")
-    displayPath = os.path.join(luciPath, "display")
+    libPath = os.path.join(luciSEEAPath, "lib")
+    logPath = os.path.join(luciSEEAPath, "logs")
+    tablesPath = os.path.join(luciSEEAPath, "tables")
+    displayPath = os.path.join(luciSEEAPath, "display")
     mxdsPath = os.path.join(displayPath, "mxds")
-    dataPath = os.path.join(luciPath, "data")
-    stylesheetsPath = os.path.join(luciPath, "stylesheets")
+    dataPath = os.path.join(luciSEEAPath, "data")
+    stylesheetsPath = os.path.join(luciSEEAPath, "stylesheets")
 
-    oldScratchPath = os.path.join(luciPath, "LUCIscratch")
+    oldScratchPath = os.path.join(luciSEEAPath, "LUCIscratch")
     scratchPath = os.path.join(basePath, "LUCIscratch")
 
-    userSettingsFile = os.path.join(luciPath, "user_settings.xml")
-    filenamesFile = os.path.join(luciPath, "filenames.xml")
-    labelsFile = os.path.join(luciPath, "labels.xml")
+    userSettingsFile = os.path.join(luciSEEAPath, "user_settings.xml")
+    filenamesFile = os.path.join(luciSEEAPath, "filenames.xml")
+    labelsFile = os.path.join(luciSEEAPath, "labels.xml")
 
-    # Add basePath to sys.path so that modules can be imported using "import luci.scripts.modulename" etc.
+    # Add basePath to sys.path so that modules can be imported using "import LUCI_SEEA.scripts.modulename" etc.
     if os.path.normpath(basePath) not in sys.path:
         sys.path.append(os.path.normpath(basePath))
 

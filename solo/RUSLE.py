@@ -8,11 +8,11 @@ import configuration
 import numpy as np
 import arcpy
 from arcpy.sa import Reclassify, RemapRange, RemapValue, Raster, Slope, Con, IsNull, Float, Power, Sin, SetNull, Lookup
-import LUCI.lib.log as log
-import LUCI.lib.common as common
-from LUCI.lib.external import six # Python 2/3 compatibility module
+import LUCI_SEEA.lib.log as log
+import LUCI_SEEA.lib.common as common
+from LUCI_SEEA.lib.external import six # Python 2/3 compatibility module
 
-from LUCI.lib.refresh_modules import refresh_modules
+from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules([log, common])
 
 def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, landCoverCode, rData, saveFactors, soilOption=None):

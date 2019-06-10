@@ -3,10 +3,10 @@ Create polygon grid tool
 '''
 import arcpy
 import os
-import LUCI.lib.common as common
-import LUCI.solo.create_grid as create_grid
+import LUCI_SEEA.lib.common as common
+import LUCI_SEEA.solo.create_grid as create_grid
 
-from LUCI.lib.refresh_modules import refresh_modules
+from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules([common, create_grid])
 
 def function(params):

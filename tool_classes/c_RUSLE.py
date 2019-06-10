@@ -1,7 +1,7 @@
 import arcpy
 import configuration
 import os
-from LUCI.lib.refresh_modules import refresh_modules
+from LUCI_SEEA.lib.refresh_modules import refresh_modules
 
 class RUSLE(object):
 
@@ -26,7 +26,7 @@ class RUSLE(object):
             """Modify the messages created by internal validation for each tool parameter.
             This method is called after internal validation."""
 
-            import LUCI.lib.input_validation as input_validation
+            import LUCI_SEEA.lib.input_validation as input_validation
             refresh_modules(input_validation)
             
             input_validation.checkFilePaths(self)
@@ -168,7 +168,7 @@ class RUSLE(object):
 
     def execute(self, parameters, messages):
 
-        import LUCI.tools.t_RUSLE as t_RUSLE
+        import LUCI_SEEA.tools.t_RUSLE as t_RUSLE
         refresh_modules(t_RUSLE)
 
         t_RUSLE.function(parameters)

@@ -1,9 +1,9 @@
 import arcpy
 import os
 import sys
-import LUCI.lib.polygon_tools as polygon_tools
+import LUCI_SEEA.lib.polygon_tools as polygon_tools
 
-from LUCI.lib.refresh_modules import refresh_modules
+from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules(polygon_tools)
 
 def function(inputExtent, outGrid, cellSize, proportionCellArea, gridCoverage, gridBoundaryCellsPercent, bufferLength, align, sigFigs):

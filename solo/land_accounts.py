@@ -7,11 +7,11 @@ import os
 import configuration
 import arcpy
 import csv
-import LUCI.lib.log as log
-import LUCI.lib.common as common
-from LUCI.lib.external import six # Python 2/3 compatibility module
+import LUCI_SEEA.lib.log as log
+import LUCI_SEEA.lib.common as common
+from LUCI_SEEA.lib.external import six # Python 2/3 compatibility module
 
-from LUCI.lib.refresh_modules import refresh_modules
+from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules([log, common])
 
 def function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField):

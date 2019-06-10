@@ -1,6 +1,6 @@
 import os
 
-from LUCI.lib.external import six # Python 2/3 compatibility module
+from LUCI_SEEA.lib.external import six # Python 2/3 compatibility module
 
 def checkFilePaths(self):
 

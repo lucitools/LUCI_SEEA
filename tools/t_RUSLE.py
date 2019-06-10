@@ -1,11 +1,11 @@
 import arcpy
 import os
 
-import LUCI.lib.log as log
-import LUCI.lib.common as common
-import LUCI.solo.RUSLE as RUSLE
+import LUCI_SEEA.lib.log as log
+import LUCI_SEEA.lib.common as common
+import LUCI_SEEA.solo.RUSLE as RUSLE
 
-from LUCI.lib.refresh_modules import refresh_modules
+from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules([log, common, RUSLE])
 
 def function(params):

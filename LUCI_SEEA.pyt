@@ -15,12 +15,12 @@ except NameError:
     	sys.exit()
 
 # Load and refresh the refresh_modules module
-from LUCI.lib.external.six.moves import reload_module
-import LUCI.lib.refresh_modules as refresh_modules
+from LUCI_SEEA.lib.external.six.moves import reload_module
+import LUCI_SEEA.lib.refresh_modules as refresh_modules
 reload_module(refresh_modules)
-from LUCI.lib.refresh_modules import refresh_modules
+from LUCI_SEEA.lib.refresh_modules import refresh_modules
 
-import LUCI.lib.input_validation as input_validation
+import LUCI_SEEA.lib.input_validation as input_validation
 refresh_modules(input_validation)
 
 ############################################
@@ -28,12 +28,12 @@ refresh_modules(input_validation)
 ############################################
 
 # Create data aggregation grid
-import LUCI.tool_classes.c_CreateDataAggregationGrid as c_CreateDataAggregationGrid
+import LUCI_SEEA.tool_classes.c_CreateDataAggregationGrid as c_CreateDataAggregationGrid
 refresh_modules(c_CreateDataAggregationGrid)
 CreateDataAggregationGrid = c_CreateDataAggregationGrid.CreateDataAggregationGrid
 
 # Aggregate data
-import LUCI.tool_classes.c_AggregateData as c_AggregateData
+import LUCI_SEEA.tool_classes.c_AggregateData as c_AggregateData
 refresh_modules(c_AggregateData)
 AggregateData = c_AggregateData.AggregateData
 
@@ -41,16 +41,16 @@ AggregateData = c_AggregateData.AggregateData
 ### Other tools ###
 ###################
 
-import LUCI.tool_classes.c_RUSLE as c_RUSLE
+import LUCI_SEEA.tool_classes.c_RUSLE as c_RUSLE
 refresh_modules(c_RUSLE)
 RUSLE = c_RUSLE.RUSLE
 
-import LUCI.tool_classes.c_LandAccounts as c_LandAccounts
+import LUCI_SEEA.tool_classes.c_LandAccounts as c_LandAccounts
 refresh_modules(c_LandAccounts)
 LandAccounts = c_LandAccounts.LandAccounts
 
 
-import LUCI.tool_classes.c_PAspeciesRichness as c_PAspeciesRichness
+import LUCI_SEEA.tool_classes.c_PAspeciesRichness as c_PAspeciesRichness
 refresh_modules(c_PAspeciesRichness)
 PAspeciesRichness = c_PAspeciesRichness.PAspeciesRichness
 
