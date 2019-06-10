@@ -15,7 +15,7 @@ from LUCI.lib.external import six # Python 2/3 compatibility module
 from LUCI.lib.refresh_modules import refresh_modules
 refresh_modules([log, common])
 
-def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, landCoverCode, rData, saveFactors):
+def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, landCoverCode, rData, saveFactors, soilOption=None):
 
     try:
         # Set temporary variables
@@ -91,8 +91,7 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
 
         try:
 
-            # Set environment and extents to DEM
-            
+            # Set environment and extents to DEM            
             RawDEM = Raster(DEM)
 
             arcpy.env.extent = RawDEM
@@ -130,22 +129,22 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         arcpy.Buffer_analysis(studyAreaMask, samBuff, buffSize)
 
         # Clip input rasters down to a buffered study area mask
-
         log.info("Clipping inputs down to buffered study area mask")
 
+        # Clip DEM
         arcpy.Clip_management(DEM, "#", DEMBuff, samBuff, clipping_geometry="ClippingGeometry")
-        
+
+        # Clip R-factor layer
         arcpy.Clip_management(rData, "#", rainBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        # Check if the soil and land cover data are rasters or shapefiles
-        
         # If shapefile, convert to a raster based on the linking code
         soilFormat = arcpy.Describe(soilData).dataType
 
-        if soilFormat in ['RasterDataset']:
+        if soilFormat in ['RasterDataset']:            
             arcpy.Clip_management(soilData, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
 
         elif soilFormat in ['ShapeFile']:
+
             arcpy.PolygonToRaster_conversion(soilData, soilCode, soilRaster, "CELL_CENTER", "", cellsizedem)
             arcpy.Clip_management(soilRaster, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
 
@@ -171,6 +170,7 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
 
         resampledRainTemp = arcpy.sa.ApplyEnvironment(rainBuff)
         resampledRainTemp.save(rainResample)
+
         resampledSoilTemp = arcpy.sa.ApplyEnvironment(soilBuff)
         resampledSoilTemp.save(soilResample)
 
@@ -239,7 +239,7 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         ### Slope length and steepness factor calculations ###
         ######################################################
 
-        cutoffPercent = 50.0 ## Hardcoded for now
+        cutoffPercent = 50.0 # Hardcoded for now (approx 45 degrees)
 
         # Calculate DEM slope in degrees
         DEMSlopePercTemp = Slope(DEMClip, "PERCENT_RISE", z_factor=1)
@@ -261,16 +261,35 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
 
         ################################
         ### Soil factor calculations ###
-        ################################        
+        ################################
 
-        kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
+        if arcpy.ProductInfo() == "ArcServer":
 
-        arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
-        arcpy.CopyRaster_management(soilClip, soilJoin)
+            # Server users have the option of using the HWSD or using their own input K-factor layer
 
-        kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
-        kOrigTemp.save(kFactor)
+            if soilOption == 'HWSD':
+                kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
 
+                arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
+                arcpy.CopyRaster_management(soilClip, soilJoin)
+
+                kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
+                kOrigTemp.save(kFactor)
+
+            elif soilOption == 'LocalSoil':
+
+                kOrigTemp = Raster(soilClip)
+                kOrigTemp.save(kFactor)
+
+        else:
+            kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
+
+            arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
+            arcpy.CopyRaster_management(soilClip, soilJoin)
+
+            kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
+            kOrigTemp.save(kFactor)
+        
         log.info("K-factor layer produced")
 
         #################################
@@ -294,6 +313,8 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         soilLoss = os.path.join(outputFolder, "soilloss")
         soilLossTemp = Raster(rFactor) * Raster(lsFactor) * Raster(kFactor) * Raster(cFactor)
         soilLossTemp.save(soilLoss)
+
+        return soilLoss
 
         log.info("RUSLE function completed successfully")
 

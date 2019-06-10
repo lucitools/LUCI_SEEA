@@ -36,7 +36,7 @@ def function(params):
         log.setupLogging(outputFolder)
 
         # Call aggregation function
-        RUSLE.function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, landCoverCode, rData, saveFactors)
+        soilLoss = RUSLE.function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, landCoverCode, rData, saveFactors)
 
         # Set up filenames for display purposes
         soilLoss = os.path.join(outputFolder, "soilloss")
