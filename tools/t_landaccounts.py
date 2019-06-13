@@ -21,14 +21,14 @@ def function(params):
             outputFolder = os.path.join(arcpy.env.scratchFolder, 'LCaccounts')
             LCaccounts = pText[2]
 
-        lcOption = pText[4]
-        inputLC = pText[5]
-        openingLC = pText[6]
-        closingLC = pText[7]        
-        openingField = pText[8]
-        closingField = pText[9]
-        lcTable = pText[10]
-        lcField = pText[11]
+        lcOption = pText[3]
+        inputLC = pText[4]
+        openingLC = pText[5]
+        closingLC = pText[6]
+        openingField = pText[7]
+        closingField = pText[8]
+        lcTable = pText[9]
+        lcField = pText[10]
 
         # System checks and setup
         if runSystemChecks:
@@ -45,11 +45,15 @@ def function(params):
         LCaccounts = land_accounts.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField)
 
         # Set up filenames for display purposes
-        LCaccounts = os.path.join(outputFolder, "lcAccount.shp")
+        lcOpening = os.path.join(outputFolder, 'lcOpening.shp')
+        lcClosing = os.path.join(outputFolder, 'lcClosing.shp')
+        outCSV = os.path.join(outputFolder, 'LandAccounts.csv')        
 
-        arcpy.SetParameter(3, LCaccounts)
+        arcpy.SetParameter(11, lcOpening)
+        arcpy.SetParameter(12, lcClosing)
+        arcpy.SetParameter(13, outCSV)
 
-        return LCaccounts
+        return LCaccounts, lcOpening, lcClosing, outCSV
 
         log.info("Land extent accounting operations completed successfully")
 

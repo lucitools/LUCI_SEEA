@@ -6,6 +6,7 @@ import sys
 import os
 import configuration
 import arcpy
+from arcpy.sa import RemapRange, Reclassify
 import csv
 import LUCI_SEEA.lib.log as log
 import LUCI_SEEA.lib.common as common
@@ -48,7 +49,7 @@ def function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField
                 log.error('This data has a Geographic Coordinate System. It must have a Projected Coordinate System.')
                 sys.exit()
 
-        ## Divide lcOption here
+        # Divide lcOption here
         if lcOption == 'One shapefile with multiple fields':
             lcOptionCode = 1
 
@@ -113,43 +114,17 @@ def function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField
                 cursor.updateRow(row)
 
         log.info("Absolute and relative land cover change differences calculated")
-        
-        # Add field for positive/negative/zero relative change
-        arcpy.AddField_management(joinedLC, "Change", "TEXT")
-
-        # Categorise the positive/negative/no change
-        with arcpy.da.UpdateCursor(joinedLC, ['RelDiff', 'Change']) as cursor:
-            for row in cursor:
-
-                RelDiff = row[0]
-
-                if RelDiff > 0:
-                    row[1] = 'Positive'
-
-                elif RelDiff < 0:
-                    row[1] = 'Negative'
-
-                elif RelDiff == 0:
-                    row[1] = 'No change'
-
-                else:
-                    log.error("Invalid relative difference, exiting programme")
-                    sys.exit()
-
-                cursor.updateRow(row)
 
         # If user has entered a land cover table, join it here
         if lcTable is not None:
             arcpy.JoinField_management(joinedLC, openingField, lcTable, lcField)
+            arcpy.JoinField_management(year1, openingField, lcTable, lcField)
+            arcpy.JoinField_management(year2, closingField, lcTable, lcField)
             log.info("Land cover table provided and linked with output")
-
-        # Export output
-        lcAccount = "lcAccount.shp"
-        arcpy.FeatureClassToFeatureClass_conversion(joinedLC, outputFolder, lcAccount)
-
+        
         # Create a CSV file with only the information the user requires
-        exportFields  = [openingField, 'area1_km2', 'area2_km2', 'AbsDiff', 'RelDiff', 'Change']
-        headings = ['Land cover code', 'Opening area (sq km)', 'Closing area (sq km)', 'Absolute Difference', 'Relative Difference', 'Relative Change']
+        exportFields  = [openingField, 'area1_km2', 'area2_km2', 'AbsDiff', 'RelDiff']
+        headings = ['Land cover code', 'Opening area (sq km)', 'Closing area (sq km)', 'Absolute Difference', 'Relative Difference']
 
         outCSV = os.path.join(outputFolder, 'LandAccounts.csv')
 
@@ -162,9 +137,27 @@ def function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField
                     writer.writerow(row)
 
             log.info('Land cover account csv table created')
+        
         csv_file.close()
 
-        return lcAccount
+        ######################
+        ### Export outputs ###
+        ######################
+
+        # Set output filenames
+        lcOpening = 'lcOpening.shp'
+        lcClosing = 'lcClosing.shp'
+
+        arcpy.FeatureClassToFeatureClass_conversion(year1, outputFolder, lcOpening)
+        arcpy.FeatureClassToFeatureClass_conversion(year2, outputFolder, lcClosing)
+
+        # Create list of outputs
+        lcOutputs = []
+        lcOutputs.append(os.path.join(outputFolder, lcOpening))
+        lcOutputs.append(os.path.join(outputFolder, lcClosing))
+        lcOutputs.append(outCSV)
+
+        return lcOutputs        
 
         log.info("Land cover accounting function completed successfully")
 

@@ -67,17 +67,7 @@ class LandAccounts(object):
         param.datatype = u'Folder'
         params.append(param)
 
-        # 3 Output_Land_Cover
-        param = arcpy.Parameter()
-        param.name = u'Output_Land_Account'
-        param.displayName = u'Land Extent Account'
-        param.parameterType = 'Derived'
-        param.direction = 'Output'
-        param.datatype = u'Feature Class'
-        param.symbology = os.path.join(configuration.displayPath, "RelativeChange.lyr")
-        params.append(param)
-
-        # 4 Land_cover_option
+        # 3 Land_cover_option
         param = arcpy.Parameter()
         param.name = u'Land_extent_option'
         param.displayName = u'Land cover input option'
@@ -88,7 +78,7 @@ class LandAccounts(object):
         param.filter.list = [u'One shapefile with multiple fields', u'Two separate shapefiles']        
         params.append(param)
 
-        # 5 Input_land_cover
+        # 4 Input_land_cover
         param = arcpy.Parameter()
         param.name = u'Input_land_cover'
         param.displayName = u'Land cover or other land extent dataset: one file with multiple fields'
@@ -97,7 +87,7 @@ class LandAccounts(object):
         param.datatype = u'Feature Class'
         params.append(param)
 
-        # 6 Opening_land_cover
+        # 5 Opening_land_cover
         param = arcpy.Parameter()
         param.name = u'Opening_land_cover'
         param.displayName = u'Land cover or other land extent dataset: opening cover shapefile'
@@ -106,7 +96,7 @@ class LandAccounts(object):
         param.datatype = u'Feature Class'
         params.append(param)
 
-        # 7 Closing_land_cover
+        # 6 Closing_land_cover
         param = arcpy.Parameter()
         param.name = u'Closing_land_cover'
         param.displayName = u'Land cover or other land extent dataset: closing cover shapefile'
@@ -115,7 +105,7 @@ class LandAccounts(object):
         param.datatype = u'Feature Class'
         params.append(param)
 
-        # 8 Opening_field
+        # 7 Opening_field
         param = arcpy.Parameter()
         param.name = u'Opening_field'
         param.displayName = u'Opening year land extent field'
@@ -124,7 +114,7 @@ class LandAccounts(object):
         param.datatype = u'String'
         params.append(param)
 
-        # 9 Closing_field
+        # 8 Closing_field
         param = arcpy.Parameter()
         param.name = u'Closing_field'
         param.displayName = u'Closing year land extent field'
@@ -133,7 +123,7 @@ class LandAccounts(object):
         param.datatype = u'String'
         params.append(param)
 
-        # 10 Land_cover_table
+        # 9 Land_cover_table
         param = arcpy.Parameter()
         param.name = u'Land_cover_table'
         param.displayName = u'Land cover label table'
@@ -142,13 +132,40 @@ class LandAccounts(object):
         param.datatype = u'Table'
         params.append(param)
 
-        # 11 Land_cover_field
+        # 10 Land_cover_field
         param = arcpy.Parameter()
         param.name = u'Land_cover_field'
         param.displayName = u'Land cover linking field'
         param.parameterType = 'Optional'
         param.direction = 'Input'
         param.datatype = u'String'
+        params.append(param)
+
+        # 11 Land_Cover_Opening
+        param = arcpy.Parameter()
+        param.name = u'Land_Cover_Opening'
+        param.displayName = u'Opening land cover'
+        param.parameterType = 'Derived'
+        param.direction = 'Output'
+        param.datatype = u'Feature Class'
+        params.append(param)
+
+        # 12 Land_Cover_Closing
+        param = arcpy.Parameter()
+        param.name = u'Land_Cover_Closing'
+        param.displayName = u'Closing land cover'
+        param.parameterType = 'Derived'
+        param.direction = 'Output'
+        param.datatype = u'Feature Class'
+        params.append(param)
+
+        # 13 Land_Cover_Account
+        param = arcpy.Parameter()
+        param.name = u'Land_Cover_Account'
+        param.displayName = u'Land cover account'
+        param.parameterType = 'Derived'
+        param.direction = 'Output'
+        param.datatype = u'File'
         params.append(param)
 
         return params
