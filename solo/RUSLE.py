@@ -22,38 +22,31 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         prefix = os.path.join(arcpy.env.scratchGDB, "rusle_")
 
         studyAreaMask = prefix + "studyAreaMask"
-
         samBuff = prefix + "samBuff"
         DEMBuff = prefix + "DEMBuff"
         soilBuff = prefix + "soilBuff"
         landCoverBuff = prefix + "landCoverBuff"
         rainBuff = prefix + "rainBuff"
-
         soilRaster = prefix + "soilRaster"
         lcRaster = prefix + "lcRaster"
-
         soilResample = prefix + "soilResample"
         lcResample = prefix + "lcResample"
         rainResample = prefix + "rainResample"
-
         maskDEM = prefix + "maskDEM"
         maskSoil = prefix + "maskSoil"
         maskLC = prefix + "maskLC"
         maskRain = prefix + "maskRain"
         maskIntersect = prefix + "maskIntersect"
-
         DEMClip = prefix + "DEMClip"
         soilClip = prefix + "soilClip"
         landCoverClip = prefix + "landCoverClip"
         rainClip = prefix + "rainClip"
-
         resampledR = prefix + "resampledR"        
         DEMSlope = prefix + "DEMSlope"
         DEMSlopePerc = prefix + "DEMSlopePerc"
         DEMSlopeCut = prefix + "DEMSlopeCut"
         soilJoin = prefix + "soilJoin"
         lcJoin = prefix + "lcJoin"
-
         rFactor = prefix + "rFactor"
         lsFactor = prefix + "lsFactor"
         kFactor = prefix + "kFactor"
@@ -84,7 +77,6 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
 
             if spatialRef.Type == "Geographic":
                 # If any of the inputs are not in a projected coordinate system, the tool exits with a warning
-
                 log.error('Data: ' + str(data))
                 log.error('This data has a Geographic Coordinate System. It must have a Projected Coordinate System.')
                 sys.exit()
@@ -204,7 +196,6 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
 
         elif coverageCheck < 2.5:
             # Inputs are still within the 97.5% threshold, possibly due to coastlines
-
             log.warning(str(coverageCheck) + ' percent discrepancy in coverage of inputs detected')
             log.warning('Some input datasets do not have full coverage of study area')
             log.warning('Possibly due to inconsistent coastlines between datasets')
@@ -212,7 +203,6 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
 
         else:
             # Inputs exceed the 97.5% threshold, exit the tool
-
             log.error('Input datasets do not over 97.5 percent of study area')
             log.error('Please check input datasets again and ensure coverage')
             log.error('Exiting RUSLE tool')
