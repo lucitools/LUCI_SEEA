@@ -42,18 +42,18 @@ def function(params):
         log.setupLogging(outputFolder)
 
         # Call aggregation function
-        LCaccounts = land_accounts.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField)
+        lcOutputs = land_accounts.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField)
 
         # Set up filenames for display purposes
-        lcOpening = os.path.join(outputFolder, 'lcOpening.shp')
-        lcClosing = os.path.join(outputFolder, 'lcClosing.shp')
-        outCSV = os.path.join(outputFolder, 'LandAccounts.csv')        
+        lcOpening = lcOutputs[0]
+        lcClosing = lcOutputs[1]
+        outCSV = lcOutputs[2]
 
         arcpy.SetParameter(11, lcOpening)
         arcpy.SetParameter(12, lcClosing)
         arcpy.SetParameter(13, outCSV)
 
-        return LCaccounts, lcOpening, lcClosing, outCSV
+        return lcOpening, lcClosing, outCSV
 
         log.info("Land extent accounting operations completed successfully")
 

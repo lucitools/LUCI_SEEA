@@ -157,7 +157,7 @@ def function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField
         lcOutputs.append(os.path.join(outputFolder, lcClosing))
         lcOutputs.append(outCSV)
 
-        return lcOutputs        
+        return lcOutputs
 
         log.info("Land cover accounting function completed successfully")
 
