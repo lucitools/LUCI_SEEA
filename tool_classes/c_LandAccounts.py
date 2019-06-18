@@ -147,7 +147,7 @@ class LandAccounts(object):
         param.displayName = u'Opening land cover'
         param.parameterType = 'Derived'
         param.direction = 'Output'
-        param.datatype = u'Feature Class'
+        param.datatype = u'Feature Layer'
         params.append(param)
 
         # 12 Land_Cover_Closing
@@ -156,7 +156,7 @@ class LandAccounts(object):
         param.displayName = u'Closing land cover'
         param.parameterType = 'Derived'
         param.direction = 'Output'
-        param.datatype = u'Feature Class'
+        param.datatype = u'Feature Layer'
         params.append(param)
 
         # 13 Land_Cover_Account
