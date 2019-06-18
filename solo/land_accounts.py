@@ -147,14 +147,17 @@ def function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField
         # Set output filenames
         lcOpening = 'lcOpening.shp'
         lcClosing = 'lcClosing.shp'
+        joinedLC = 'joinedLC.shp'
 
         arcpy.FeatureClassToFeatureClass_conversion(year1, outputFolder, lcOpening)
         arcpy.FeatureClassToFeatureClass_conversion(year2, outputFolder, lcClosing)
+        arcpy.FeatureClassToFeatureClass_conversion(joinedLC, outputFolder, joinedLC)
 
         # Create list of outputs
         lcOutputs = []
         lcOutputs.append(os.path.join(outputFolder, lcOpening))
         lcOutputs.append(os.path.join(outputFolder, lcClosing))
+        lcOutputs.append(os.path.join(outputFolder, joinedLC))
         lcOutputs.append(outCSV)
 
         return lcOutputs

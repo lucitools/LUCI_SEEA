@@ -47,9 +47,10 @@ def function(params):
         # Set up filenames for display purposes
         lcOpening = lcOutputs[0]
         lcClosing = lcOutputs[1]
-        outCSV = lcOutputs[2]
+        joinedLC = lcOutputs[2]
+        outCSV = lcOutputs[3]
 
-        arcpy.SetParameter(11, lcOpening)
+        arcpy.SetParameter(11, joinedLC)
         arcpy.SetParameter(12, lcClosing)
         arcpy.SetParameter(13, outCSV)
 
