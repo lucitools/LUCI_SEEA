@@ -47,14 +47,14 @@ def function(params):
         # Set up filenames for display purposes
         lcOpening = lcOutputs[0]
         lcClosing = lcOutputs[1]
-        joinedLC = lcOutputs[2]
+        lcOpeningWithAccounts = lcOutputs[2]
         outCSV = lcOutputs[3]
 
-        arcpy.SetParameter(11, joinedLC)
+        arcpy.SetParameter(11, lcOpening)
         arcpy.SetParameter(12, lcClosing)
         arcpy.SetParameter(13, outCSV)
 
-        return lcOpening, lcClosing, outCSV
+        return lcOpeningWithAccounts, lcClosing, outCSV
 
         log.info("Land extent accounting operations completed successfully")
 
