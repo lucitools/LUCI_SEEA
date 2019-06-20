@@ -132,16 +132,25 @@ class LandAccounts(object):
         param.datatype = u'Table'
         params.append(param)
 
-        # 10 Land_cover_field
+        # 10 Land_cover_code_field
         param = arcpy.Parameter()
-        param.name = u'Land_cover_field'
-        param.displayName = u'Land cover linking field'
+        param.name = u'Land_cover_code_field'
+        param.displayName = u'Land cover code field'
         param.parameterType = 'Optional'
         param.direction = 'Input'
         param.datatype = u'String'
         params.append(param)
 
-        # 11 Land_Cover_Opening
+        # 11 Land_cover_name_field
+        param = arcpy.Parameter()
+        param.name = u'Land_cover_name_field'
+        param.displayName = u'Land cover name field'
+        param.parameterType = 'Optional'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        params.append(param)
+
+        # 12 Land_Cover_Opening
         param = arcpy.Parameter()
         param.name = u'Land_Cover_Opening'
         param.displayName = u'Opening land cover'
@@ -150,7 +159,7 @@ class LandAccounts(object):
         param.datatype = u'Feature Layer'
         params.append(param)
 
-        # 12 Land_Cover_Closing
+        # 13 Land_Cover_Closing
         param = arcpy.Parameter()
         param.name = u'Land_Cover_Closing'
         param.displayName = u'Closing land cover'
@@ -159,7 +168,7 @@ class LandAccounts(object):
         param.datatype = u'Feature Layer'
         params.append(param)
 
-        # 13 Land_Cover_Account
+        # 14 Land_Cover_Account
         param = arcpy.Parameter()
         param.name = u'Land_Cover_Account'
         param.displayName = u'Land cover account'

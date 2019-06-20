@@ -28,7 +28,8 @@ def function(params):
         openingField = pText[7]
         closingField = pText[8]
         lcTable = pText[9]
-        lcField = pText[10]
+        lcCodeField = pText[10]
+        lcNameField = pText[11]
 
         # System checks and setup
         if runSystemChecks:
@@ -42,7 +43,7 @@ def function(params):
         log.setupLogging(outputFolder)
 
         # Call aggregation function
-        lcOutputs = land_accounts.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField)
+        lcOutputs = land_accounts.function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcCodeField, lcNameField)
 
         # Set up filenames for display purposes
         lcOpening = lcOutputs[0]
@@ -50,9 +51,9 @@ def function(params):
         lcOpeningWithAccounts = lcOutputs[2]
         outCSV = lcOutputs[3]
 
-        arcpy.SetParameter(11, lcOpening)
-        arcpy.SetParameter(12, lcClosing)
-        arcpy.SetParameter(13, outCSV)
+        arcpy.SetParameter(12, lcOpening)
+        arcpy.SetParameter(13, lcClosing)
+        arcpy.SetParameter(14, outCSV)
 
         return lcOpeningWithAccounts, lcClosing, outCSV
 

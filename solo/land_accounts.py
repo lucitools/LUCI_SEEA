@@ -15,7 +15,7 @@ from LUCI_SEEA.lib.external import six # Python 2/3 compatibility module
 from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules([log, common])
 
-def function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcField):
+def function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField, closingField, lcTable, lcCodeField, lcNameField):
 
     try:
         # Set temporary variables
@@ -117,9 +117,9 @@ def function(outputFolder, lcOption, inputLC, openingLC, closingLC, openingField
 
         # If user has entered a land cover table, join it here
         if lcTable is not None:
-            arcpy.JoinField_management(joinedLC, openingField, lcTable, lcField)
-            arcpy.JoinField_management(year1, openingField, lcTable, lcField)
-            arcpy.JoinField_management(year2, closingField, lcTable, lcField)
+            arcpy.JoinField_management(joinedLC, openingField, lcTable, lcCodeField)
+            arcpy.JoinField_management(year1, openingField, lcTable, lcCodeField)
+            arcpy.JoinField_management(year2, closingField, lcTable, lcCodeField)
             log.info("Land cover table provided and linked with output")
         
         # Create a CSV file with only the information the user requires
