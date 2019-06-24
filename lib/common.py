@@ -331,6 +331,24 @@ def getFreeDiskSpaceGb(dirname):
         return st.f_bavail * st.f_frsize / 1024 / 1024 / 1024
 
 
+def checkLicenceLevel(licenceLevel):
+
+    if licenceLevel == 'Basic':
+        product = 'arcview'
+    elif licenceLevel == 'Standard':
+        product = 'arceditor'
+    elif licenceLevel == 'Advanced':
+        product = 'arcinfo'
+    else:
+        log.error('Licence level ' + str(licenceLevel) + ' not valid.')
+        sys.exit()
+
+    if arcpy.CheckProduct(product).strip() in ["Available", "AlreadyInitialized"]:
+        return True
+    else:
+        return False
+
+
 def indentXML(elem, level=0, more_sibs=False):
 
     ''' Taken from https://stackoverflow.com/questions/749796/pretty-printing-xml-in-python '''
@@ -373,31 +391,6 @@ def addPath(obj, folder):
 
     return obj
 
-def checkCoverage(studyAreaMask, raster):
-
-    # Checks the coverage of a raster against the study area mask with some buffer (2 * cellsize)
-
-    maskExtent = arcpy.Describe(studyAreaMask).extent
-    rasterExtent = arcpy.Describe(raster).extent
-
-    # Find raster cellsize
-    cellSize = int(float(arcpy.GetRasterProperties_management(raster, "CELLSIZEX").getOutput(0)))
-
-    # Set buffer distance
-    bufferDist = 2.0 * cellSize
-
-    # If coverage is the same, diffCoverage is False
-    diffCoverage = False
-
-    # Check raster extent against mask extent
-    if (rasterExtent.XMin > maskExtent.XMin - bufferDist or rasterExtent.XMax < maskExtent.XMax + bufferDist
-    or  rasterExtent.YMin > maskExtent.YMin - bufferDist or rasterExtent.YMax < maskExtent.YMax + bufferDist):
-
-        # Difference between raster extent and mask extent
-        diffCoverage = True
-
-    return diffCoverage
-
 def extractRasterMask(raster):
 
     # Takes a raster and returns its mask as a polygon
@@ -418,7 +411,7 @@ def extractRasterMask(raster):
 
 def checkCoverage(maskA, maskB):
 
-    # Checks the coverage between maskA and maskB
+    # Checks the coverage between mask A and mask B
 
     # Set temporary variables
     prefix = os.path.join(arcpy.env.scratchGDB, "cover_")
@@ -426,9 +419,7 @@ def checkCoverage(maskA, maskB):
 
     percOut = 0
 
-    if arcpy.ProductInfo() == 'ArcInfo': # Advanced License
-
-        arcpy.AddMessage('ArcInfo license present. Running consistency checks.')
+    if checkLicenceLevel('Advanced') or arcpy.ProductInfo() == "ArcServer":
 
         # Calculate total area of the coverage (study area or contributing area)
         arcpy.AddField_management(maskB, "Area_ha", "DOUBLE")
@@ -446,7 +437,7 @@ def checkCoverage(maskA, maskB):
         rows = [row for row in arcpy.da.SearchCursor(maskACoverage, "*")]
         numFeatures = len(rows)
 
-        if numFeatures != 0: # There is a discrepancy between maskA and maskB
+        if numFeatures != 0: # There is a discrepancy between mask A and mask B
 
             # Calculate the area of the polygons in the discrepancy
             arcpy.AddField_management(maskACoverage, "Sliver", "DOUBLE")
@@ -460,8 +451,8 @@ def checkCoverage(maskA, maskB):
             # Calculate percentage of the coverage area that the discrepancy covers
             percOut = area / maskBVal * 100
 
-        return percOut
-
     else:
         log.warning('Coverage discrepancies between soil, land use, and coverage extent not checked as advanced license not present.')
         log.warning('Please ensure the soil and land use shapefile cover at least 97.5 percent of the coverage extent')
+
+    return percOut
