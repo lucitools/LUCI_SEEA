@@ -119,7 +119,6 @@ class RUSLE(object):
         param.displayName = u'Land cover dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
-        # param.datatype = u'File'
         param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 

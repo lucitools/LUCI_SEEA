@@ -82,7 +82,6 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
                 sys.exit()
 
         try:
-
             # Set environment and extents to DEM            
             RawDEM = Raster(DEM)
 
@@ -99,16 +98,11 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         
         # Check coverage of inputs against study area mask
 
-        if studyMask != None: # if user has provided a study area mask            
-            
+        if studyMask is not None: # if user has provided a study area mask            
+
             log.info("Study area mask provided")
-            samName = "rusle_studyAreaMask"
-            arcpy.FeatureClassToFeatureClass_conversion(studyMask, arcpy.env.scratchGDB, samName)
-
+            arcpy.FeatureClassToFeatureClass_conversion(studyMask, arcpy.env.scratchGDB, studyAreaMask)
         else:
-
-            log.info("Study area mask not provided, using DEM footprint as the study area mask")
-
             # Create study area mask from DEM
             samTemp = common.extractRasterMask(DEM)
             arcpy.Copy_management(samTemp, studyAreaMask)
