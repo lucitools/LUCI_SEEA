@@ -13,6 +13,7 @@ def function(params):
     try:
         pText = common.paramsAsText(params)
 
+        # Get inputs
         runSystemChecks = common.strToBool(pText[1])
         outputFolder = pText[2]
         studyMask = pText[4]

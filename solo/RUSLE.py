@@ -201,6 +201,7 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
             log.error('Please check input datasets again and ensure coverage')
             log.error('Exiting RUSLE tool')
             sys.exit()
+            
 
         # Clip inputs down to studyAreaMask
         log.info("Clipping inputs down to study area mask")
@@ -247,32 +248,24 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         ### Soil factor calculations ###
         ################################
 
-        if arcpy.ProductInfo() == "ArcServer":
+        # Server users have the option of using the HWSD or using their own input K-factor layer
 
-            # Server users have the option of using the HWSD or using their own input K-factor layer
+        if soilOption == 'HWSD':
 
-            if soilOption == 'HWSD':
-                kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
-
-                arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
-                arcpy.CopyRaster_management(soilClip, soilJoin)
-
-                kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
-                kOrigTemp.save(kFactor)
-
-            elif soilOption == 'LocalSoil':
-
-                kOrigTemp = Raster(soilClip)
-                kOrigTemp.save(kFactor)
-
-        else:
             kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
-
             arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
             arcpy.CopyRaster_management(soilClip, soilJoin)
 
             kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
             kOrigTemp.save(kFactor)
+
+        elif soilOption == 'LocalSoil':
+
+            kOrigTemp = Raster(soilClip)
+            kOrigTemp.save(kFactor)
+
+        else:
+            log.error("Invalid soil option")
         
         log.info("K-factor layer produced")
 
