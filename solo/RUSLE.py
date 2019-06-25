@@ -101,7 +101,7 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         if studyMask is not None: # if user has provided a study area mask            
 
             log.info("Study area mask provided")
-            arcpy.FeatureClassToFeatureClass_conversion(studyMask, arcpy.env.scratchGDB, studyAreaMask)
+            arcpy.FeatureClassToFeatureClass_conversion(studyMask, os.path.dirname(studyAreaMask), os.path.basename(studyAreaMask))
         else:
             # Create study area mask from DEM
             samTemp = common.extractRasterMask(DEM)
