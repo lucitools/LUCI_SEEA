@@ -3,3 +3,7 @@ __pycache__/
 *.py[cod]
 
 *.lock
+
+# Config / User settings files
+config.xml
+user_settings.xml
