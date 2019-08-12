@@ -456,3 +456,117 @@ def checkCoverage(maskA, maskB):
         log.warning('Please ensure the soil and land use shapefile cover at least 97.5 percent of the coverage extent')
 
     return percOut
+
+def listEnvironmentSettings():
+
+    environments = arcpy.ListEnvironments()
+
+    # Sort the environment names
+    environments.sort()
+
+    for environment in environments:
+        # Format and print each environment and its current setting.
+        # (The environments are accessed by key from arcpy.env.)
+        log.info("{0:<30}: {1}".format(environment, arcpy.env[environment]))
+
+def writeXML(XMLfile, nodeNameValueList):
+
+    ''' 
+    Writes nodename/value pairs to an XML file. The file is created if it does not alredy exist.
+    These nodes must live as children of the top level node (typically <data>).
+
+    nodeNameValueList should have the format [(nodename, value), (nodename, value), ...]
+    '''
+
+    def createElement(parent, name):
+
+        try:
+            found = False
+            for child in parent.getchildren():
+                if child.tag == name:
+                    found = True
+            if not found:
+                parent.append(ET.Element(name))
+
+        except Exception:
+            log.error("Could not create element " + name)
+            raise
+
+
+    def setElementValue(parent, name, value, attrib=None):
+
+        try:
+            elem = findElement(parent, name)
+            elem.text = value
+
+            if attrib is not None:
+                elem.set('displayName', attrib)
+
+        except Exception:
+            log.error("Could not set value for element " + name)
+            raise
+
+
+    def findElement(parent, name):
+
+        try:
+            elem = None
+            for child in parent.getchildren():
+                if child.tag == name:
+                    elem = child
+            return elem
+
+        except Exception:
+            log.error("Could not find element " + name)
+            raise
+
+    # WriteXML main function code
+    try:
+        # Create file if does not exist
+        try:
+            if not os.path.exists(XMLfile):
+                root = ET.Element("data")
+                tree = ET.ElementTree(root)
+                tree.write(XMLfile, encoding="utf-8", xml_declaration=True)
+            else:
+                # Open file for reading
+                tree = ET.parse(XMLfile)
+                root = tree.getroot()
+
+        except Exception:
+            log.error("Problem creating or opening XML file")
+            raise
+
+        # Loop through node/value list
+        for nodeNameValue in nodeNameValueList:
+
+            nodeName = nodeNameValue[0]
+            value = nodeNameValue[1]
+
+            if len(nodeNameValue) == 3:
+                attrib = nodeNameValue[2]
+
+            else:
+                attrib = None
+
+            # Check if node exists
+            node = findElement(root, nodeName)
+            if node is None:
+                createElement(root, nodeName) # Create new node
+
+            setElementValue(root, nodeName, value, attrib)
+
+        try:
+            # Make XML file more human-readable
+            indentXML(root)
+
+            # Save the XML file
+            tree.write(XMLfile, encoding='utf-8', xml_declaration=True)
+
+        except Exception:
+            log.error("Problem saving XML file")
+            raise     
+
+    except Exception:
+        log.error("Data not written to XML file")
+        raise
