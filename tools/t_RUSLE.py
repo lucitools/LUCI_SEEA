@@ -49,5 +49,5 @@ def function(params):
         log.info("RUSLE operations completed successfully")
 
     except Exception:
-        log.exception("Aggregate data tool failed")
+        log.exception("RUSLE tool failed")
         raise

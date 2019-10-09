@@ -37,6 +37,7 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         maskLC = prefix + "maskLC"
         maskRain = prefix + "maskRain"
         maskIntersect = prefix + "maskIntersect"
+        maskIntDissolved = prefix + "maskIntDissolved"
         DEMClip = prefix + "DEMClip"
         soilClip = prefix + "soilClip"
         landCoverClip = prefix + "landCoverClip"
@@ -67,6 +68,8 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         # Ensure all inputs are in a projected coordinate system
         log.info('Checking if all inputs are in a projected coordinate system')
 
+        ## TODO: Ensure all raster datasets are in the same projection
+
         inputs = [DEM, soilData, landCoverData, rData]
 
         if studyMask is not None:
@@ -82,6 +85,7 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
                 sys.exit()
 
         try:
+
             # Set environment and extents to DEM            
             RawDEM = Raster(DEM)
 
@@ -123,10 +127,10 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         # Clip R-factor layer
         arcpy.Clip_management(rData, "#", rainBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        # If shapefile, convert to a raster based on the linking code
+        # If soil dataset is a shapefile, convert to a raster based on the linking code
         soilFormat = arcpy.Describe(soilData).dataType
 
-        if soilFormat in ['RasterDataset']:            
+        if soilFormat in ['RasterDataset', 'RasterLayer']:            
             arcpy.Clip_management(soilData, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
 
         elif soilFormat in ['ShapeFile']:
@@ -138,9 +142,10 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
             log.error('Soil dataset is neither a shapefile or raster, please check input')
             sys.exit()
 
+        # If land cover dataset is a shapefile, convert to a raster based on the linking code
         lcFormat = arcpy.Describe(landCoverData).dataType
 
-        if lcFormat in ['RasterDataset']:
+        if lcFormat in ['RasterDataset', 'RasterLayer']:
             arcpy.Clip_management(landCoverData, "#", landCoverBuff, samBuff, clipping_geometry="ClippingGeometry")
 
         elif lcFormat in ['ShapeFile']:
@@ -178,30 +183,42 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         maskRainTemp = common.extractRasterMask(rainBuff)
         arcpy.Copy_management(maskRainTemp, maskRain)
 
-        # Tntersect all masks
-        arcpy.Intersect_analysis([studyAreaMask, maskSoil, maskLC, maskRain], maskIntersect)
+        # Check coverage of each mask against the study area mask
+        masks = [maskDEM, maskSoil, maskLC, maskRain]
 
-        # Check the coverage of the input mask against the the study area mask
-        coverageCheck = common.checkCoverage(maskIntersect, studyAreaMask)
+        # Calculate geometry for the study area mask
+        arcpy.AddField_management(studyAreaMask, "area_km2", "FLOAT")
+        exp = "!SHAPE.AREA@SQUAREKILOMETERS!"
+        arcpy.CalculateField_management(studyAreaMask, "area_km2", exp, "PYTHON_9.3")
+        
+        for mask in masks:
 
-        if coverageCheck == 0:
-            log.info('All inputs have the same coverage as the study area mask')
-            log.info('Proceeding with RUSLE calculations')
+            # Intersect the input mask with the study area
+            intersect = [mask, studyAreaMask]
+            arcpy.Intersect_analysis(intersect, maskIntersect)
 
-        elif coverageCheck < 2.5:
-            # Inputs are still within the 97.5% threshold, possibly due to coastlines
-            log.warning(str(coverageCheck) + ' percent discrepancy in coverage of inputs detected')
-            log.warning('Some input datasets do not have full coverage of study area')
-            log.warning('Possibly due to inconsistent coastlines between datasets')
-            log.warning('Proceeding with RUSLE calculations')
+            # Calculate the size of the intersected mask
+            arcpy.AddField_management(maskIntersect, "intArea_km2", "FLOAT")
+            exp = "!SHAPE.AREA@SQUAREKILOMETERS!"
+            arcpy.CalculateField_management(maskIntersect, "intArea_km2", exp, "PYTHON_9.3")
 
-        else:
-            # Inputs exceed the 97.5% threshold, exit the tool
-            log.error('Input datasets do not over 97.5 percent of study area')
-            log.error('Please check input datasets again and ensure coverage')
-            log.error('Exiting RUSLE tool')
-            sys.exit()
-            
+            intSize = 0.0            
+            for row in arcpy.da.SearchCursor(maskIntersect, "intArea_km2"):
+                intSize += row[0]
+
+            # Calculate the size of the study area mask
+            for row in arcpy.da.SearchCursor(studyAreaMask, "area_km2"):
+                studyAreaSize = row[0]
+
+            # Check size of intersected polygon against study area mask
+            if float(intSize) < float(studyAreaSize):
+
+                percCoverage = (float(intSize) / float (studyAreaSize)) * 100.0
+                log.warning('Input is smaller than the study area, this may cause issues in later calculations')
+                log.warning('Input covers only ' + str(round(percCoverage, 2)))
+                log.warning('Please check: ' + str(mask))
+
+            ## TODO: Assign a threshold that will give the user (1) a warning or (2) an error that exits the programme
 
         # Clip inputs down to studyAreaMask
         log.info("Clipping inputs down to study area mask")
@@ -247,7 +264,7 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         ################################
         ### Soil factor calculations ###
         ################################
-
+        
         # Server users have the option of using the HWSD or using their own input K-factor layer
 
         if soilOption == 'HWSD':
@@ -262,10 +279,17 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         elif soilOption == 'LocalSoil':
 
             kOrigTemp = Raster(soilClip)
-            kOrigTemp.save(kFactor)
+            kOrigTemp.save(kFactor)      
 
         else:
-            log.error("Invalid soil option")
+            # If using the Desktop version
+
+            kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
+            arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
+            arcpy.CopyRaster_management(soilClip, soilJoin)
+
+            kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
+            kOrigTemp.save(kFactor)
         
         log.info("K-factor layer produced")
 
