@@ -45,6 +45,10 @@ import LUCI_SEEA.tool_classes.c_RUSLE as c_RUSLE
 refresh_modules(c_RUSLE)
 RUSLE = c_RUSLE.RUSLE
 
+import LUCI_SEEA.tool_classes.c_RUSLEAccounts as c_RUSLEAccounts
+refresh_modules(c_RUSLEAccounts)
+RUSLEAccounts = c_RUSLEAccounts.RUSLEAccounts
+
 import LUCI_SEEA.tool_classes.c_LandAccounts as c_LandAccounts
 refresh_modules(c_LandAccounts)
 LandAccounts = c_LandAccounts.LandAccounts
@@ -66,4 +70,4 @@ class Toolbox(object):
     def __init__(self):
         self.label = u'LUCI freely available'
         self.alias = u'LUCI'
-        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, LandAccounts, PAspeciesRichness, ChangeUserSettings]
+        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, RUSLEAccounts, LandAccounts, PAspeciesRichness, ChangeUserSettings]
