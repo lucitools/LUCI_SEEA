@@ -315,9 +315,9 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         soilLossTemp = Raster(rFactor) * Raster(lsFactor) * Raster(kFactor) * Raster(cFactor)
         soilLossTemp.save(soilLoss)
 
-        return soilLoss
-
         log.info("RUSLE function completed successfully")
+
+        return soilLoss        
 
     except Exception:
         arcpy.AddError("RUSLE function failed")
