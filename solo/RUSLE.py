@@ -15,7 +15,7 @@ from LUCI_SEEA.lib.external import six # Python 2/3 compatibility module
 from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules([log, common])
 
-def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, landCoverCode, rData, saveFactors, soilOption=None):
+def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOption, landCoverData, landCoverCode, rData, saveFactors):
 
     try:
         # Set temporary variables
@@ -265,9 +265,9 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         ### Soil factor calculations ###
         ################################
         
-        # Server users have the option of using the HWSD or using their own input K-factor layer
-
         if soilOption == 'HWSD':
+
+            # User input is the HWSD dataset
 
             kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
             arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
@@ -278,18 +278,15 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
 
         elif soilOption == 'LocalSoil':
 
+            # User input is their own K-factor dataset
+
             kOrigTemp = Raster(soilClip)
-            kOrigTemp.save(kFactor)      
+            kOrigTemp.save(kFactor)
 
         else:
-            # If using the Desktop version
+            log.error('Invalid soil erodibility option')
+            sys.exit()
 
-            kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
-            arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
-            arcpy.CopyRaster_management(soilClip, soilJoin)
-
-            kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
-            kOrigTemp.save(kFactor)
         
         log.info("K-factor layer produced")
 
@@ -297,13 +294,28 @@ def function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, la
         ### Cover factor calculations ###
         #################################
 
-        cTable = os.path.join(configuration.tablesPath, "rusle_esacci.dbf")
+        if lcOption == 'ESACCI':
 
-        arcpy.JoinField_management(landCoverClip, "VALUE", cTable, "LC_CODE")
-        arcpy.CopyRaster_management(landCoverClip, lcJoin)
+            # User input is the ESA CCI dataset
 
-        cOrigTemp = Lookup(lcJoin, "CFACTOR")
-        cOrigTemp.save(cFactor)
+            cTable = os.path.join(configuration.tablesPath, "rusle_esacci.dbf")
+
+            arcpy.JoinField_management(landCoverClip, "VALUE", cTable, "LC_CODE")
+            arcpy.CopyRaster_management(landCoverClip, lcJoin)
+
+            cOrigTemp = Lookup(lcJoin, "CFACTOR")
+            cOrigTemp.save(cFactor)
+
+        elif lcOption == 'LocalCfactor':
+
+            # User input is their own C-factor dataset
+
+            cOrigTemp = Raster(landCoverClip)
+            cOrigTemp.save(cFactor)
+
+        else:
+            log.error('Invalid C-factor option')
+            sys.exit()
 
         log.info("C-factor layer produced")
 

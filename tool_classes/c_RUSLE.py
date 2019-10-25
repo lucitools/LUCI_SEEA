@@ -85,62 +85,84 @@ class RUSLE(object):
         param.direction = 'Input'
         param.datatype = u'Feature Class'
         params.append(param)
+
+        # 5 Rainfall erosivity
+        param = arcpy.Parameter()
+        param.name = u'Rainfall_erosivity'
+        param.displayName = u'R-factor: Rainfall erosivity dataset'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Raster Layer'
+        params.append(param)
         
-        # 5 Digital Elevation Model
+        # 6 Digital Elevation Model
         param = arcpy.Parameter()
         param.name = u'Digital_Elevation_Model'
-        param.displayName = u'Digital Elevation Model'
+        param.displayName = u'LS-factor: Digital Elevation Model (DEM)'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'Raster Layer'
         params.append(param)
 
-        # 6 Soils
+        # 7 K-factor option
+        param = arcpy.Parameter()
+        param.name = u'Kfactor_option'
+        param.displayName = u'K-factor: Soil erodibility option'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        param.value = u'Use the Harmonized World Soils Database (FAO)'
+        param.filter.list = [u'Use the Harmonized World Soils Database (FAO)', u'Use local K-factor dataset']
+        params.append(param)
+
+        # 8 Soils
         param = arcpy.Parameter()
         param.name = u'Soils'
-        param.displayName = u'Soil dataset'
+        param.displayName = u'K-factor: Soil or erodibility dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 7 Soil_linking_code
+        # 9 Soil_linking_code
         param = arcpy.Parameter()
         param.name = u'Soil_linking_code'
-        param.displayName = u'Soil linking code'
-        param.parameterType = 'Optional'
+        param.displayName = u'K-factor: Soil linking code'
+        param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'String'        
         params.append(param)
 
-        # 8 Land_cover
+        # 10 C-factor option
+        param = arcpy.Parameter()
+        param.name = u'Cfactor_option'
+        param.displayName = u'C-factor: Land cover option'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        param.value = u'Use the ESA CCI'
+        param.filter.list = [u'Use the ESA CCI', u'Use local C-factor dataset']
+        params.append(param)
+
+        # 11 Land_cover
         param = arcpy.Parameter()
         param.name = u'Land_cover'
-        param.displayName = u'Land cover dataset'
+        param.displayName = u'C-factor: Land cover or cover factor dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 9 Land_cover_linking_code
+        # 12 Land_cover_linking_code
         param = arcpy.Parameter()
         param.name = u'Land_cover_linking_code'
-        param.displayName = u'Land cover linking code'
-        param.parameterType = 'Optional'
-        param.direction = 'Input'
-        param.datatype = u'String'
-        params.append(param)
-
-        # 10 Rainfall erosivity
-        param = arcpy.Parameter()
-        param.name = u'Rainfall_erosivity'
-        param.displayName = u'Rainfall erosivity dataset'
+        param.displayName = u'C-factor: Land cover linking code'
         param.parameterType = 'Required'
         param.direction = 'Input'
-        param.datatype = u'Raster Layer'
-        params.append(param)
+        param.datatype = u'String'
+        params.append(param)        
 
-        # 11 Save_factor_layers
+        # 13 Save_factor_layers
         param = arcpy.Parameter()
         param.name = u'Save_factor_layers'
         param.displayName = u'Save factor layers?'

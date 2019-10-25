@@ -17,13 +17,24 @@ def function(params):
         runSystemChecks = common.strToBool(pText[1])
         outputFolder = pText[2]
         studyMask = pText[4]
-        DEM = pText[5]
-        soilData = pText[6]
-        soilCode = pText[7]
-        landCoverData = pText[8]
-        landCoverCode = pText[9]
-        rData = pText[10]
-        saveFactors = common.strToBool(pText[11])
+
+        # R-factor
+        rData = pText[5]
+
+        # LS-factor
+        DEM = pText[6]
+
+        # K-factor
+        kOption = pText[7]
+        soilData = pText[8]
+        soilCode = pText[9]
+
+        # C-factor
+        cOption = pText[10]
+        landCoverData = pText[11]
+        landCoverCode = pText[12]
+
+        saveFactors = common.strToBool(pText[13])
 
         # System checks and setup
         if runSystemChecks:
@@ -36,8 +47,31 @@ def function(params):
         # Set up logging output to file
         log.setupLogging(outputFolder)
 
-        # Call aggregation function
-        soilLoss = RUSLE.function(outputFolder, studyMask, DEM, soilData, soilCode, landCoverData, landCoverCode, rData, saveFactors)
+        # Set soilOption for K-factor
+        if kOption == 'Use the Harmonized World Soils Database (FAO)':
+            soilOption = 'HWSD'
+
+        elif kOption == 'Use local K-factor dataset':
+            soilOption = 'LocalSoil'
+
+        else:
+            log.error('Invalid soil erodibility option')
+            sys.exit()
+
+        # Set lcOption for C-factor
+        if cOption == 'Use the ESA CCI':
+            lcOption = 'ESACCI'
+
+        elif cOption == 'Use local C-factor dataset':
+            lcOption = 'LocalCfactor'
+
+        else:
+            log.error('Invalid C-factor option')
+            sys.exit()
+
+        # Call RUSLE function
+        soilLoss = RUSLE.function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode,
+                                  lcOption, landCoverData, landCoverCode, rData, saveFactors)
 
         # Set up filenames for display purposes
         soilLoss = os.path.join(outputFolder, "soilloss")
