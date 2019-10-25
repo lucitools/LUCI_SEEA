@@ -13,24 +13,31 @@ def function(params):
     try:
         pText = common.paramsAsText(params)
 
+        ## TODO: change inputs to be consistent with the RUSLE function
+
         # Get inputs
         runSystemChecks = common.strToBool(pText[1])
         outputFolder = pText[5]
 
         # Inputs constant between the two years        
         studyMask = pText[6]
-        DEM = pText[7]
-        rData = pText[8]
-        soilData = pText[9]
-        soilCode = pText[10]        
+        rData = pText[7] # R-factor
+        DEM = pText[8] # DEM for LS-factor
+
+        # K-factor
+        kOption = pText[9]        
+        soilData = pText[10]
+        soilCode = pText[11]        
 
         # Inputs for year A
-        lcYearA = pText[11]
-        lcCodeA = pText[12]
+        lcOptionA = pText[12]
+        lcYearA = pText[13]
+        lcCodeA = pText[14]
 
         # Inputs for year B
-        lcYearB = pText[13]
-        lcCodeB = pText[14]
+        lcOptionB = pText[15]
+        lcYearB = pText[16]
+        lcCodeB = pText[17]
         
         saveFactors = False
 
@@ -47,8 +54,9 @@ def function(params):
         
         # Call RUSLE_accounts function
 
-        RUSLE_accounts.function(outputFolder, studyMask, DEM, rData, soilData, soilCode,
-                                lcYearA, lcCodeA, lcYearB, lcCodeB, saveFactors)
+        RUSLE_accounts.function(outputFolder, studyMask, rData, DEM, kOption, soilData, soilCode,
+                                lcOptionA, lcYearA, lcCodeA,
+                                lcOptionB, lcYearB, lcCodeB, saveFactors)
 
         # Set up filenames for display purposes
         soilLossA = os.path.join(outputFolder, "soillossA")

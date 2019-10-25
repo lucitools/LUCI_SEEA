@@ -106,74 +106,107 @@ class RUSLEAccounts(object):
         param.direction = 'Input'
         param.datatype = u'Feature Class'
         params.append(param)
-        
-        # 7 Digital Elevation Model
-        param = arcpy.Parameter()
-        param.name = u'Digital_Elevation_Model'
-        param.displayName = u'Digital Elevation Model'
-        param.parameterType = 'Required'
-        param.direction = 'Input'
-        param.datatype = u'Raster Layer'
-        params.append(param)
 
-        # 8 Rainfall erosivity
+        # 7 Rainfall erosivity
         param = arcpy.Parameter()
         param.name = u'Rainfall_erosivity'
-        param.displayName = u'Rainfall erosivity dataset'
+        param.displayName = u'R-factor: Rainfall erosivity dataset'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Raster Layer'
+        params.append(param)
+        
+        # 8 Digital Elevation Model
+        param = arcpy.Parameter()
+        param.name = u'Digital_Elevation_Model'
+        param.displayName = u'LS-factor: Digital Elevation Model'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'Raster Layer'
         params.append(param)
 
-        # 9 Soils
+        # 9 K-factor option
+        param = arcpy.Parameter()
+        param.name = u'Kfactor_option'
+        param.displayName = u'K-factor: Soil erodibility option'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        param.value = u'Use the Harmonized World Soils Database (FAO)'
+        param.filter.list = [u'Use the Harmonized World Soils Database (FAO)', u'Use local K-factor dataset']
+        params.append(param)
+
+        # 10 Soils
         param = arcpy.Parameter()
         param.name = u'Soils'
-        param.displayName = u'Soil dataset'
+        param.displayName = u'K-factor: Soil or erodibility dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 10 Soil_linking_code
+        # 11 Soil_linking_code
         param = arcpy.Parameter()
         param.name = u'Soil_linking_code'
-        param.displayName = u'Soil linking code'
+        param.displayName = u'K-factor: Soil linking code'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'String'        
         params.append(param)
 
-        # 11 Land_cover_A
+        # 12 C-factor option for Year A
+        param = arcpy.Parameter()
+        param.name = u'Cfactor_option_A'
+        param.displayName = u'C-factor for Year A: Land cover option'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        param.value = u'Use the ESA CCI'
+        param.filter.list = [u'Use the ESA CCI', u'Use local C-factor dataset']
+        params.append(param)
+
+        # 13 Land_cover_A
         param = arcpy.Parameter()
         param.name = u'Land_cover_A'
-        param.displayName = u'Land cover dataset for Year A'
+        param.displayName = u'C-factor for Year A: Land cover or cover factor dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 12 Land_cover_linking_code_A
+        # 14 Land_cover_linking_code_A
         param = arcpy.Parameter()
         param.name = u'Land_cover_linking_code_A'
-        param.displayName = u'Land cover linking code for Year A'
+        param.displayName = u'C-factor for Year A: Land cover linking code'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'String'
         params.append(param)
 
-        # 13 Land_cover_B
+        # 15 C-factor option for Year B
+        param = arcpy.Parameter()
+        param.name = u'Cfactor_option_B'
+        param.displayName = u'C-factor for Year B: Land cover option'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        param.value = u'Use the ESA CCI'
+        param.filter.list = [u'Use the ESA CCI', u'Use local C-factor dataset']
+        params.append(param)
+
+        # 16 Land_cover_B
         param = arcpy.Parameter()
         param.name = u'Land_cover_B'
-        param.displayName = u'Land cover dataset for Year B'
+        param.displayName = u'C-factor for Year B: Land cover or cover factor dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 14 Land_cover_linking_code_B
+        # 17 Land_cover_linking_code_B
         param = arcpy.Parameter()
         param.name = u'Land_cover_linking_code_B'
-        param.displayName = u'Land cover linking code for Year B'
+        param.displayName = u'C-factor for Year B: Land cover linking code'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'String'
