@@ -160,9 +160,18 @@ class RUSLE(object):
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'String'
-        params.append(param)        
+        params.append(param)
 
-        # 13 Save_factor_layers
+        # 13 Pfactor_dataset
+        param = arcpy.Parameter()
+        param.name = u'Pfactor_dataset'
+        param.displayName = u'P-factor: Support practice dataset'
+        param.parameterType = 'Optional'
+        param.direction = 'Input'
+        param.datatype = 'Raster Layer'
+        params.append(param)
+
+        # 14 Save_factor_layers
         param = arcpy.Parameter()
         param.name = u'Save_factor_layers'
         param.displayName = u'Save factor layers?'

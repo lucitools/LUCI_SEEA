@@ -183,7 +183,16 @@ class RUSLEAccounts(object):
         param.datatype = u'String'
         params.append(param)
 
-        # 15 C-factor option for Year B
+        # 15 Pfactor_dataset_A
+        param = arcpy.Parameter()
+        param.name = u'Pfactor_dataset_A'
+        param.displayName = u'P-factor for Year A: Support practice dataset'
+        param.parameterType = 'Optional'
+        param.direction = 'Input'
+        param.datatype = 'Raster Layer'
+        params.append(param)
+
+        # 16 C-factor option for Year B
         param = arcpy.Parameter()
         param.name = u'Cfactor_option_B'
         param.displayName = u'C-factor for Year B: Land cover option'
@@ -194,7 +203,7 @@ class RUSLEAccounts(object):
         param.filter.list = [u'Use the ESA CCI', u'Use local C-factor dataset']
         params.append(param)
 
-        # 16 Land_cover_B
+        # 17 Land_cover_B
         param = arcpy.Parameter()
         param.name = u'Land_cover_B'
         param.displayName = u'C-factor for Year B: Land cover or cover factor dataset'
@@ -203,14 +212,23 @@ class RUSLEAccounts(object):
         param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 17 Land_cover_linking_code_B
+        # 18 Land_cover_linking_code_B
         param = arcpy.Parameter()
         param.name = u'Land_cover_linking_code_B'
         param.displayName = u'C-factor for Year B: Land cover linking code'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'String'
-        params.append(param)        
+        params.append(param)
+
+        # 19 Pfactor_dataset_B
+        param = arcpy.Parameter()
+        param.name = u'Pfactor_dataset_B'
+        param.displayName = u'P-factor for Year B: Support practice dataset'
+        param.parameterType = 'Optional'
+        param.direction = 'Input'
+        param.datatype = 'Raster Layer'
+        params.append(param)
 
         return params
 

@@ -16,7 +16,7 @@ import LUCI_SEEA.solo.RUSLE as RUSLE
 from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules([log, common, RUSLE])
 
-def function(outputFolder, studyMask, rData, DEM, kOption, soilData, soilCode, cOptionA, lcYearA, lcCodeA, cOptionB, lcYearB, lcCodeB, saveFactors):
+def function(outputFolder, studyMask, rData, DEM, kOption, soilData, soilCode, cOptionA, lcYearA, lcCodeA, supportA, cOptionB, lcYearB, lcCodeB, supportB, saveFactors):
 
     try:
         # Set temporary variables
@@ -64,7 +64,7 @@ def function(outputFolder, studyMask, rData, DEM, kOption, soilData, soilCode, c
             sys.exit()
 
         # Call RUSLE function for Year A        
-        soilLoss = RUSLE.function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOptionA, lcYearA, lcCodeA, rData, saveFactors)
+        soilLoss = RUSLE.function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOptionA, lcYearA, lcCodeA, rData, saveFactors, supportA)
         arcpy.CopyRaster_management(soilLoss, soilLossA)
 
         ################################
@@ -86,7 +86,7 @@ def function(outputFolder, studyMask, rData, DEM, kOption, soilData, soilCode, c
             sys.exit()
 
         # Call RUSLE function for Year B
-        soilLoss = RUSLE.function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOptionB, lcYearB, lcCodeB, rData, saveFactors)
+        soilLoss = RUSLE.function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOptionB, lcYearB, lcCodeB, rData, saveFactors, supportB)
 
         # Copy soilLoss from the first call of the RUSLE function to the right filename
         arcpy.CopyRaster_management(soilLoss, soilLossB)

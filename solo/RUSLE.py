@@ -15,7 +15,7 @@ from LUCI_SEEA.lib.external import six # Python 2/3 compatibility module
 from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules([log, common])
 
-def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOption, landCoverData, landCoverCode, rData, saveFactors):
+def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOption, landCoverData, landCoverCode, rData, saveFactors, supportData):
 
     try:
         # Set temporary variables
@@ -24,6 +24,7 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
         studyAreaMask = prefix + "studyAreaMask"
         samBuff = prefix + "samBuff"
         DEMBuff = prefix + "DEMBuff"
+        supportBuff = prefix + "supportBuff"
         soilBuff = prefix + "soilBuff"
         landCoverBuff = prefix + "landCoverBuff"
         rainBuff = prefix + "rainBuff"
@@ -32,16 +33,19 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
         soilResample = prefix + "soilResample"
         lcResample = prefix + "lcResample"
         rainResample = prefix + "rainResample"
+        pResample = prefix + "pResample"
         maskDEM = prefix + "maskDEM"
         maskSoil = prefix + "maskSoil"
         maskLC = prefix + "maskLC"
         maskRain = prefix + "maskRain"
+        maskSupport = prefix + "maskSupport"
         maskIntersect = prefix + "maskIntersect"
         maskIntDissolved = prefix + "maskIntDissolved"
         DEMClip = prefix + "DEMClip"
         soilClip = prefix + "soilClip"
         landCoverClip = prefix + "landCoverClip"
         rainClip = prefix + "rainClip"
+        supportClip = prefix + "supportClip"
         resampledR = prefix + "resampledR"        
         DEMSlope = prefix + "DEMSlope"
         DEMSlopePerc = prefix + "DEMSlopePerc"
@@ -52,6 +56,7 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
         lsFactor = prefix + "lsFactor"
         kFactor = prefix + "kFactor"
         cFactor = prefix + "cFactor"
+        pFactor = prefix + "pFactor"
 
         if saveFactors:
             # if RUSLE factor layers are to be saved
@@ -60,6 +65,7 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
             lsFactor = os.path.join(outputFolder, "lsFactor")
             kFactor = os.path.join(outputFolder, "kFactor")
             cFactor = os.path.join(outputFolder, "cFactor")
+            pFactor = os.path.join(outputFolder, "pFactor")
 
         ####################
         ### Check inputs ###
@@ -71,6 +77,9 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
         ## TODO: Ensure all raster datasets are in the same projection
 
         inputs = [DEM, soilData, landCoverData, rData]
+
+        if supportData is not None:
+            inputs.append(supportData)
 
         if studyMask is not None:
             inputs.append(studyMask)
@@ -127,6 +136,10 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
         # Clip R-factor layer
         arcpy.Clip_management(rData, "#", rainBuff, samBuff, clipping_geometry="ClippingGeometry")
 
+        # Clip P-factor layer if it exists
+        if supportData is not None:
+            arcpy.Clip_management(supportData, "#", supportBuff, samBuff, clipping_geometry="ClippingGeometry")
+
         # If soil dataset is a shapefile, convert to a raster based on the linking code
         soilFormat = arcpy.Describe(soilData).dataType
 
@@ -168,6 +181,10 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
         resampledLCTemp = arcpy.sa.ApplyEnvironment(landCoverBuff)
         resampledLCTemp.save(lcResample)
 
+        if supportData is not None:
+            resampledPTemp = arcpy.sa.ApplyEnvironment(supportBuff)
+            resampledPTemp.save(pResample)
+
         # Convert all the input rasters to polygon masks
         log.info("Checking inputs against study area mask")
 
@@ -185,6 +202,11 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
 
         # Check coverage of each mask against the study area mask
         masks = [maskDEM, maskSoil, maskLC, maskRain]
+
+        if supportData is not None:
+            maskSupportTemp = common.extractRasterMask(supportBuff)
+            arcpy.Copy_management(maskSupportTemp, maskSupport)
+            masks.append(maskSupport)
 
         # Calculate geometry for the study area mask
         arcpy.AddField_management(studyAreaMask, "area_km2", "FLOAT")
@@ -227,6 +249,9 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
         arcpy.Clip_management(soilResample, "#", soilClip, studyAreaMask, clipping_geometry="ClippingGeometry")
         arcpy.Clip_management(lcResample, "#", landCoverClip, studyAreaMask, clipping_geometry="ClippingGeometry")
         arcpy.Clip_management(rainResample, "#", rainClip, studyAreaMask, clipping_geometry="ClippingGeometry")
+
+        if supportData is not None:
+            arcpy.Clip_management(pResample, "#", supportClip, studyAreaMask, clipping_geometry="ClippingGeometry")
         
         ####################################
         ### Rainfall factor calculations ###
@@ -319,12 +344,26 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
 
         log.info("C-factor layer produced")
 
+        #####################################
+        ### Support practice calculations ###
+        #####################################
+
+        if supportData is not None:
+            arcpy.CopyRaster_management(supportClip, pFactor)
+            log.info("P-factor layer produced")
+
         ##############################
         ### Soil loss calculations ###
         ##############################
 
         soilLoss = os.path.join(outputFolder, "soilloss")
-        soilLossTemp = Raster(rFactor) * Raster(lsFactor) * Raster(kFactor) * Raster(cFactor)
+
+        if supportData is not None:
+            soilLossTemp = Raster(rFactor) * Raster(lsFactor) * Raster(kFactor) * Raster(cFactor) * Raster(pFactor)
+
+        else:
+            soilLossTemp = Raster(rFactor) * Raster(lsFactor) * Raster(kFactor) * Raster(cFactor)
+
         soilLossTemp.save(soilLoss)
 
         log.info("RUSLE function completed successfully")

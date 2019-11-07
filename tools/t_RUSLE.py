@@ -34,7 +34,10 @@ def function(params):
         landCoverData = pText[11]
         landCoverCode = pText[12]
 
-        saveFactors = common.strToBool(pText[13])
+        # P-factor
+        supportData = pText[13]
+
+        saveFactors = common.strToBool(pText[14])
 
         # System checks and setup
         if runSystemChecks:
@@ -71,7 +74,7 @@ def function(params):
 
         # Call RUSLE function
         soilLoss = RUSLE.function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode,
-                                  lcOption, landCoverData, landCoverCode, rData, saveFactors)
+                                  lcOption, landCoverData, landCoverCode, rData, saveFactors, supportData)
 
         # Set up filenames for display purposes
         soilLoss = os.path.join(outputFolder, "soilloss")

@@ -33,11 +33,13 @@ def function(params):
         lcOptionA = pText[12]
         lcYearA = pText[13]
         lcCodeA = pText[14]
+        supportA = pText[15]
 
         # Inputs for year B
-        lcOptionB = pText[15]
-        lcYearB = pText[16]
-        lcCodeB = pText[17]
+        lcOptionB = pText[16]
+        lcYearB = pText[17]
+        lcCodeB = pText[18]
+        supportB = pText[19]
         
         saveFactors = False
 
@@ -55,8 +57,8 @@ def function(params):
         # Call RUSLE_accounts function
 
         RUSLE_accounts.function(outputFolder, studyMask, rData, DEM, kOption, soilData, soilCode,
-                                lcOptionA, lcYearA, lcCodeA,
-                                lcOptionB, lcYearB, lcCodeB, saveFactors)
+                                lcOptionA, lcYearA, lcCodeA, supportA, 
+                                lcOptionB, lcYearB, lcCodeB, supportB, saveFactors)
 
         # Set up filenames for display purposes
         soilLossA = os.path.join(outputFolder, "soillossA")
