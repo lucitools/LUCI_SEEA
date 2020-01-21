@@ -146,7 +146,7 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
         if soilFormat in ['RasterDataset', 'RasterLayer']:            
             arcpy.Clip_management(soilData, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        elif soilFormat in ['ShapeFile']:
+        elif soilFormat in ['Shapefile', 'FeatureClass']:
 
             arcpy.PolygonToRaster_conversion(soilData, soilCode, soilRaster, "CELL_CENTER", "", cellsizedem)
             arcpy.Clip_management(soilRaster, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
@@ -157,11 +157,11 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
 
         # If land cover dataset is a shapefile, convert to a raster based on the linking code
         lcFormat = arcpy.Describe(landCoverData).dataType
-
+        
         if lcFormat in ['RasterDataset', 'RasterLayer']:
             arcpy.Clip_management(landCoverData, "#", landCoverBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        elif lcFormat in ['ShapeFile']:
+        elif lcFormat in ['Shapefile', 'FeatureClass']:
             arcpy.PolygonToRaster_conversion(landCoverData, landCoverCode, lcRaster, "CELL_CENTER", "", cellsizedem)
             arcpy.Clip_management(lcRaster, "#", landCoverBuff, samBuff, clipping_geometry="ClippingGeometry")
 
