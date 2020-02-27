@@ -9,13 +9,14 @@ import numpy as np
 import arcpy
 from arcpy.sa import Reclassify, RemapRange, RemapValue, Raster, Slope, Con, IsNull, Float, Power, Sin, SetNull, Lookup
 import LUCI_SEEA.lib.log as log
+import LUCI_SEEA.lib.progress as progress
 import LUCI_SEEA.lib.common as common
 from LUCI_SEEA.lib.external import six # Python 2/3 compatibility module
 
 from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules([log, common])
 
-def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOption, landCoverData, landCoverCode, rData, saveFactors, supportData):
+def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOption, landCoverData, landCoverCode, rData, saveFactors, supportData, rerun=False):
 
     try:
         # Set temporary variables
@@ -71,27 +72,34 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
         ### Check inputs ###
         ####################
 
-        # Ensure all inputs are in a projected coordinate system
-        log.info('Checking if all inputs are in a projected coordinate system')
+        codeBlock = 'Check if all inputs are in a projected coordinate systems'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
 
-        ## TODO: Ensure all raster datasets are in the same projection
+            # Ensure all inputs are in a projected coordinate system
+            log.info('Checking if all inputs are in a projected coordinate system')
 
-        inputs = [DEM, soilData, landCoverData, rData]
+            ## TODO: Ensure all raster datasets are in the same projection
 
-        if supportData is not None:
-            inputs.append(supportData)
+            inputs = [DEM, soilData, landCoverData, rData]
 
-        if studyMask is not None:
-            inputs.append(studyMask)
+            if supportData is not None:
+                inputs.append(supportData)
 
-        for data in inputs:
-            spatialRef = arcpy.Describe(data).spatialReference
+            if studyMask is not None:
+                inputs.append(studyMask)
 
-            if spatialRef.Type == "Geographic":
-                # If any of the inputs are not in a projected coordinate system, the tool exits with a warning
-                log.error('Data: ' + str(data))
-                log.error('This data has a Geographic Coordinate System. It must have a Projected Coordinate System.')
-                sys.exit()
+            for data in inputs:
+                spatialRef = arcpy.Describe(data).spatialReference
+
+                if spatialRef.Type == "Geographic":
+                    # If any of the inputs are not in a projected coordinate system, the tool exits with a warning
+                    log.error('Data: ' + str(data))
+                    log.error('This data has a Geographic Coordinate System. It must have a Projected Coordinate System.')
+                    sys.exit()
+
+            log.info('All inputs are in a projected coordinate system, proceeding.')
+
+            progress.logProgress(codeBlock, outputFolder)
 
         try:
 
@@ -103,254 +111,304 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
             arcpy.env.cellSize = RawDEM
             arcpy.env.compression = "None"
 
+            cellsizedem = float(arcpy.GetRasterProperties_management(DEM, "CELLSIZEX").getOutput(0))
+
             log.info("Calculation extent set to DEM data extent")            
 
         except Exception:
             log.error("Environment and extent conditions not set correctly")
             raise
-        
+
         # Check coverage of inputs against study area mask
 
-        if studyMask is not None: # if user has provided a study area mask            
+        codeBlock = 'Buffering study area mask'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
 
-            log.info("Study area mask provided")
-            arcpy.FeatureClassToFeatureClass_conversion(studyMask, os.path.dirname(studyAreaMask), os.path.basename(studyAreaMask))
-        else:
-            # Create study area mask from DEM
-            samTemp = common.extractRasterMask(DEM)
-            arcpy.Copy_management(samTemp, studyAreaMask)
+            if studyMask is not None: # if user has provided a study area mask            
 
-            log.info("Study area mask produced from DEM")
-        
-        # Create a buffered study area mask
-        cellsizedem = float(arcpy.GetRasterProperties_management(DEM, "CELLSIZEX").getOutput(0))
-        buffSize = cellsizedem * 3.0
-        arcpy.Buffer_analysis(studyAreaMask, samBuff, buffSize)
+                log.info("Study area mask provided")
+                arcpy.FeatureClassToFeatureClass_conversion(studyMask, os.path.dirname(studyAreaMask), os.path.basename(studyAreaMask))
+            else:
+                # Create study area mask from DEM
+                samTemp = common.extractRasterMask(DEM)
+                arcpy.Copy_management(samTemp, studyAreaMask)
 
-        # Clip input rasters down to a buffered study area mask
-        log.info("Clipping inputs down to buffered study area mask")
+                log.info("Study area mask produced from DEM")
+            
+            # Create a buffered study area mask            
+            buffSize = cellsizedem * 3.0
+            arcpy.Buffer_analysis(studyAreaMask, samBuff, buffSize)
 
-        # Clip DEM
-        arcpy.Clip_management(DEM, "#", DEMBuff, samBuff, clipping_geometry="ClippingGeometry")
+            progress.logProgress(codeBlock, outputFolder)
 
-        # Clip R-factor layer
-        arcpy.Clip_management(rData, "#", rainBuff, samBuff, clipping_geometry="ClippingGeometry")
+        codeBlock = 'Clip inputs down to buffered study area mask'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
 
-        # Clip P-factor layer if it exists
-        if supportData is not None:
-            arcpy.Clip_management(supportData, "#", supportBuff, samBuff, clipping_geometry="ClippingGeometry")
+            # Clip input rasters down to a buffered study area mask
+            log.info("Clipping inputs down to buffered study area mask")
 
-        # If soil dataset is a shapefile, convert to a raster based on the linking code
-        soilFormat = arcpy.Describe(soilData).dataType
+            # Clip DEM
+            arcpy.Clip_management(DEM, "#", DEMBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        if soilFormat in ['RasterDataset', 'RasterLayer']:            
-            arcpy.Clip_management(soilData, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
+            # Clip R-factor layer
+            arcpy.Clip_management(rData, "#", rainBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        elif soilFormat in ['Shapefile', 'FeatureClass']:
+            # Clip P-factor layer if it exists
+            if supportData is not None:
+                arcpy.Clip_management(supportData, "#", supportBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-            arcpy.PolygonToRaster_conversion(soilData, soilCode, soilRaster, "CELL_CENTER", "", cellsizedem)
-            arcpy.Clip_management(soilRaster, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
+            # If soil dataset is a shapefile, convert to a raster based on the linking code
+            soilFormat = arcpy.Describe(soilData).dataType
 
-        else:
-            log.error('Soil dataset is neither a shapefile or raster, please check input')
-            sys.exit()
+            if soilFormat in ['RasterDataset', 'RasterLayer']:            
+                arcpy.Clip_management(soilData, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        # If land cover dataset is a shapefile, convert to a raster based on the linking code
-        lcFormat = arcpy.Describe(landCoverData).dataType
-        
-        if lcFormat in ['RasterDataset', 'RasterLayer']:
-            arcpy.Clip_management(landCoverData, "#", landCoverBuff, samBuff, clipping_geometry="ClippingGeometry")
+            elif soilFormat in ['Shapefile', 'FeatureClass']:
 
-        elif lcFormat in ['Shapefile', 'FeatureClass']:
-            arcpy.PolygonToRaster_conversion(landCoverData, landCoverCode, lcRaster, "CELL_CENTER", "", cellsizedem)
-            arcpy.Clip_management(lcRaster, "#", landCoverBuff, samBuff, clipping_geometry="ClippingGeometry")
+                arcpy.PolygonToRaster_conversion(soilData, soilCode, soilRaster, "CELL_CENTER", "", cellsizedem)
+                arcpy.Clip_management(soilRaster, "#", soilBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        else:
-            log.error('Land cover dataset is neither a shapefile or raster, please check input')
-            sys.exit()
+            else:
+                log.error('Soil dataset is neither a shapefile or raster, please check input')
+                sys.exit()
 
-        # Resample down to DEM cell size
-        log.info("Resampling inputs down to DEM cell size")        
+            # If land cover dataset is a shapefile, convert to a raster based on the linking code
+            lcFormat = arcpy.Describe(landCoverData).dataType
+            
+            if lcFormat in ['RasterDataset', 'RasterLayer']:
+                arcpy.Clip_management(landCoverData, "#", landCoverBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        resampledRainTemp = arcpy.sa.ApplyEnvironment(rainBuff)
-        resampledRainTemp.save(rainResample)
+            elif lcFormat in ['Shapefile', 'FeatureClass']:
+                arcpy.PolygonToRaster_conversion(landCoverData, landCoverCode, lcRaster, "CELL_CENTER", "", cellsizedem)
+                arcpy.Clip_management(lcRaster, "#", landCoverBuff, samBuff, clipping_geometry="ClippingGeometry")
 
-        resampledSoilTemp = arcpy.sa.ApplyEnvironment(soilBuff)
-        resampledSoilTemp.save(soilResample)
+            else:
+                log.error('Land cover dataset is neither a shapefile or raster, please check input')
+                sys.exit()
 
-        resampledLCTemp = arcpy.sa.ApplyEnvironment(landCoverBuff)
-        resampledLCTemp.save(lcResample)
+            progress.logProgress(codeBlock, outputFolder)
 
-        if supportData is not None:
-            resampledPTemp = arcpy.sa.ApplyEnvironment(supportBuff)
-            resampledPTemp.save(pResample)
+        codeBlock = 'Resample down to DEM cell size'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
 
-        # Convert all the input rasters to polygon masks
-        log.info("Checking inputs against study area mask")
+            # Resample down to DEM cell size
+            log.info("Resampling inputs down to DEM cell size")        
 
-        maskDEMTemp = common.extractRasterMask(DEMBuff)
-        arcpy.Copy_management(maskDEMTemp, maskDEM)
+            resampledRainTemp = arcpy.sa.ApplyEnvironment(rainBuff)
+            resampledRainTemp.save(rainResample)
 
-        maskSoilTemp = common.extractRasterMask(soilBuff)
-        arcpy.Copy_management(maskSoilTemp, maskSoil)
+            resampledSoilTemp = arcpy.sa.ApplyEnvironment(soilBuff)
+            resampledSoilTemp.save(soilResample)
 
-        maskLCTemp = common.extractRasterMask(landCoverBuff)
-        arcpy.Copy_management(maskLCTemp, maskLC)
+            resampledLCTemp = arcpy.sa.ApplyEnvironment(landCoverBuff)
+            resampledLCTemp.save(lcResample)
 
-        maskRainTemp = common.extractRasterMask(rainBuff)
-        arcpy.Copy_management(maskRainTemp, maskRain)
+            if supportData is not None:
+                resampledPTemp = arcpy.sa.ApplyEnvironment(supportBuff)
+                resampledPTemp.save(pResample)
 
-        # Check coverage of each mask against the study area mask
-        masks = [maskDEM, maskSoil, maskLC, maskRain]
+            progress.logProgress(codeBlock, outputFolder)
 
-        if supportData is not None:
-            maskSupportTemp = common.extractRasterMask(supportBuff)
-            arcpy.Copy_management(maskSupportTemp, maskSupport)
-            masks.append(maskSupport)
+        codeBlock = 'Check against study area mask'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
 
-        # Calculate geometry for the study area mask
-        arcpy.AddField_management(studyAreaMask, "area_km2", "FLOAT")
-        exp = "!SHAPE.AREA@SQUAREKILOMETERS!"
-        arcpy.CalculateField_management(studyAreaMask, "area_km2", exp, "PYTHON_9.3")
-        
-        for mask in masks:
+            # Convert all the input rasters to polygon masks
+            log.info("Checking inputs against study area mask")
 
-            # Intersect the input mask with the study area
-            intersect = [mask, studyAreaMask]
-            arcpy.Intersect_analysis(intersect, maskIntersect)
+            maskDEMTemp = common.extractRasterMask(DEMBuff)
+            arcpy.Copy_management(maskDEMTemp, maskDEM)
 
-            # Calculate the size of the intersected mask
-            arcpy.AddField_management(maskIntersect, "intArea_km2", "FLOAT")
+            maskSoilTemp = common.extractRasterMask(soilBuff)
+            arcpy.Copy_management(maskSoilTemp, maskSoil)
+
+            maskLCTemp = common.extractRasterMask(landCoverBuff)
+            arcpy.Copy_management(maskLCTemp, maskLC)
+
+            maskRainTemp = common.extractRasterMask(rainBuff)
+            arcpy.Copy_management(maskRainTemp, maskRain)
+
+            # Check coverage of each mask against the study area mask
+            masks = [maskDEM, maskSoil, maskLC, maskRain]
+
+            if supportData is not None:
+                maskSupportTemp = common.extractRasterMask(supportBuff)
+                arcpy.Copy_management(maskSupportTemp, maskSupport)
+                masks.append(maskSupport)
+
+            # Calculate geometry for the study area mask
+            arcpy.AddField_management(studyAreaMask, "area_km2", "FLOAT")
             exp = "!SHAPE.AREA@SQUAREKILOMETERS!"
-            arcpy.CalculateField_management(maskIntersect, "intArea_km2", exp, "PYTHON_9.3")
+            arcpy.CalculateField_management(studyAreaMask, "area_km2", exp, "PYTHON_9.3")
+            
+            for mask in masks:
 
-            intSize = 0.0            
-            for row in arcpy.da.SearchCursor(maskIntersect, "intArea_km2"):
-                intSize += row[0]
+                # Intersect the input mask with the study area
+                intersect = [mask, studyAreaMask]
+                arcpy.Intersect_analysis(intersect, maskIntersect)
 
-            # Calculate the size of the study area mask
-            for row in arcpy.da.SearchCursor(studyAreaMask, "area_km2"):
-                studyAreaSize = row[0]
+                # Calculate the size of the intersected mask
+                arcpy.AddField_management(maskIntersect, "intArea_km2", "FLOAT")
+                exp = "!SHAPE.AREA@SQUAREKILOMETERS!"
+                arcpy.CalculateField_management(maskIntersect, "intArea_km2", exp, "PYTHON_9.3")
 
-            # Check size of intersected polygon against study area mask
-            if float(intSize) < float(studyAreaSize):
+                intSize = 0.0            
+                for row in arcpy.da.SearchCursor(maskIntersect, "intArea_km2"):
+                    intSize += row[0]
 
-                percCoverage = (float(intSize) / float (studyAreaSize)) * 100.0
-                log.warning('Input is smaller than the study area, this may cause issues in later calculations')
-                log.warning('Input covers only ' + str(round(percCoverage, 2)))
-                log.warning('Please check: ' + str(mask))
+                # Calculate the size of the study area mask
+                for row in arcpy.da.SearchCursor(studyAreaMask, "area_km2"):
+                    studyAreaSize = row[0]
+
+                # Check size of intersected polygon against study area mask
+                if float(intSize) < float(studyAreaSize):
+
+                    percCoverage = (float(intSize) / float (studyAreaSize)) * 100.0
+                    log.warning('Input is smaller than the study area, this may cause issues in later calculations')
+                    log.warning('Input covers only ' + str(round(percCoverage, 2)))
+                    log.warning('Please check: ' + str(mask))
 
             ## TODO: Assign a threshold that will give the user (1) a warning or (2) an error that exits the programme
 
-        # Clip inputs down to studyAreaMask
-        log.info("Clipping inputs down to study area mask")
+            progress.logProgress(codeBlock, outputFolder)
 
-        arcpy.Clip_management(DEM, "#", DEMClip, studyAreaMask, clipping_geometry="ClippingGeometry")
-        arcpy.Clip_management(soilResample, "#", soilClip, studyAreaMask, clipping_geometry="ClippingGeometry")
-        arcpy.Clip_management(lcResample, "#", landCoverClip, studyAreaMask, clipping_geometry="ClippingGeometry")
-        arcpy.Clip_management(rainResample, "#", rainClip, studyAreaMask, clipping_geometry="ClippingGeometry")
+        codeBlock = 'Clip down to study area mask'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
 
-        if supportData is not None:
-            arcpy.Clip_management(pResample, "#", supportClip, studyAreaMask, clipping_geometry="ClippingGeometry")
+            # Clip inputs down to studyAreaMask
+            log.info("Clipping inputs down to study area mask")
+
+            arcpy.Clip_management(DEM, "#", DEMClip, studyAreaMask, clipping_geometry="ClippingGeometry")
+            arcpy.Clip_management(soilResample, "#", soilClip, studyAreaMask, clipping_geometry="ClippingGeometry")
+            arcpy.Clip_management(lcResample, "#", landCoverClip, studyAreaMask, clipping_geometry="ClippingGeometry")
+            arcpy.Clip_management(rainResample, "#", rainClip, studyAreaMask, clipping_geometry="ClippingGeometry")
+
+            if supportData is not None:
+                arcpy.Clip_management(pResample, "#", supportClip, studyAreaMask, clipping_geometry="ClippingGeometry")
         
+            progress.logProgress(codeBlock, outputFolder)
+
         ####################################
         ### Rainfall factor calculations ###
         ####################################
 
-        # Copy resampled raster
-        arcpy.CopyRaster_management(rainClip, rFactor)
+        codeBlock = 'Produce R-factor layer'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
 
-        log.info("R-factor layer produced")
+            # Copy resampled raster
+            arcpy.CopyRaster_management(rainClip, rFactor)
+
+            log.info("R-factor layer produced")
+
+            progress.logProgress(codeBlock, outputFolder)
 
         ######################################################
         ### Slope length and steepness factor calculations ###
         ######################################################
 
-        cutoffPercent = 50.0 # Hardcoded for now (approx 45 degrees)
+        codeBlock = 'Produce LS-factor layer'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
 
-        # Calculate DEM slope in degrees
-        DEMSlopePercTemp = Slope(DEMClip, "PERCENT_RISE", z_factor=1)
-        DEMSlopePercTemp.save(DEMSlopePerc)
+            cutoffPercent = 50.0 # Hardcoded for now (approx 45 degrees)
 
-        # Produce slope cutoff raster
-        DEMSlopeCutTemp = Con(Raster(DEMSlopePerc) > float(cutoffPercent), float(cutoffPercent), Raster(DEMSlopePerc))
-        DEMSlopeCutTemp.save(DEMSlopeCut)
+            # Calculate DEM slope in degrees
+            DEMSlopePercTemp = Slope(DEMClip, "PERCENT_RISE", z_factor=1)
+            DEMSlopePercTemp.save(DEMSlopePerc)
 
-        # Calculate the parts of the LS-factor equation separately
-        lsCalcA = Power((cellsizedem / 22.0), 0.5)
-        lsCalcB = 0.065 + (0.045 * Raster(DEMSlopeCut)) + (0.0065 * Power(Raster(DEMSlopeCut), 2.0))
+            # Produce slope cutoff raster
+            DEMSlopeCutTemp = Con(Raster(DEMSlopePerc) > float(cutoffPercent), float(cutoffPercent), Raster(DEMSlopePerc))
+            DEMSlopeCutTemp.save(DEMSlopeCut)
 
-        # Calculate the LS-factor
-        lsOrigTemp = lsCalcA * lsCalcB
-        lsOrigTemp.save(lsFactor)
+            # Calculate the parts of the LS-factor equation separately
+            lsCalcA = Power((cellsizedem / 22.0), 0.5)
+            lsCalcB = 0.065 + (0.045 * Raster(DEMSlopeCut)) + (0.0065 * Power(Raster(DEMSlopeCut), 2.0))
 
-        log.info("LS-factor layer produced")
+            # Calculate the LS-factor
+            lsOrigTemp = lsCalcA * lsCalcB
+            lsOrigTemp.save(lsFactor)
+
+            log.info("LS-factor layer produced")
+
+            progress.logProgress(codeBlock, outputFolder)
 
         ################################
         ### Soil factor calculations ###
         ################################
+
+        codeBlock = 'Produce K-factor layer'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
         
-        if soilOption == 'HWSD':
+            if soilOption == 'HWSD':
 
-            # User input is the HWSD dataset
+                # User input is the HWSD dataset
 
-            kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
-            arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
-            arcpy.CopyRaster_management(soilClip, soilJoin)
+                kTable = os.path.join(configuration.tablesPath, "rusle_hwsd.dbf")
+                arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
+                arcpy.CopyRaster_management(soilClip, soilJoin)
 
-            kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
-            kOrigTemp.save(kFactor)
+                kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
+                kOrigTemp.save(kFactor)
 
-        elif soilOption == 'LocalSoil':
+            elif soilOption == 'LocalSoil':
 
-            # User input is their own K-factor dataset
+                # User input is their own K-factor dataset
 
-            kOrigTemp = Raster(soilClip)
-            kOrigTemp.save(kFactor)
+                kOrigTemp = Raster(soilClip)
+                kOrigTemp.save(kFactor)
 
-        else:
-            log.error('Invalid soil erodibility option')
-            sys.exit()
+            else:
+                log.error('Invalid soil erodibility option')
+                sys.exit()
+            
+            log.info("K-factor layer produced")
 
-        
-        log.info("K-factor layer produced")
+            progress.logProgress(codeBlock, outputFolder)
 
         #################################
         ### Cover factor calculations ###
         #################################
 
-        if lcOption == 'ESACCI':
+        codeBlock = 'Produce C-factor layer'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
 
-            # User input is the ESA CCI dataset
+            if lcOption == 'ESACCI':
 
-            cTable = os.path.join(configuration.tablesPath, "rusle_esacci.dbf")
+                # User input is the ESA CCI dataset
 
-            arcpy.JoinField_management(landCoverClip, "VALUE", cTable, "LC_CODE")
-            arcpy.CopyRaster_management(landCoverClip, lcJoin)
+                cTable = os.path.join(configuration.tablesPath, "rusle_esacci.dbf")
 
-            cOrigTemp = Lookup(lcJoin, "CFACTOR")
-            cOrigTemp.save(cFactor)
+                arcpy.JoinField_management(landCoverClip, "VALUE", cTable, "LC_CODE")
+                arcpy.CopyRaster_management(landCoverClip, lcJoin)
 
-        elif lcOption == 'LocalCfactor':
+                cOrigTemp = Lookup(lcJoin, "CFACTOR")
+                cOrigTemp.save(cFactor)
 
-            # User input is their own C-factor dataset
+            elif lcOption == 'LocalCfactor':
 
-            cOrigTemp = Raster(landCoverClip)
-            cOrigTemp.save(cFactor)
+                # User input is their own C-factor dataset
 
-        else:
-            log.error('Invalid C-factor option')
-            sys.exit()
+                cOrigTemp = Raster(landCoverClip)
+                cOrigTemp.save(cFactor)
 
-        log.info("C-factor layer produced")
+            else:
+                log.error('Invalid C-factor option')
+                sys.exit()
+
+            log.info("C-factor layer produced")
+
+            progress.logProgress(codeBlock, outputFolder)
 
         #####################################
         ### Support practice calculations ###
         #####################################
 
-        if supportData is not None:
-            arcpy.CopyRaster_management(supportClip, pFactor)
-            log.info("P-factor layer produced")
+        codeBlock = 'Produce P-factor layer'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
+
+            if supportData is not None:
+                arcpy.CopyRaster_management(supportClip, pFactor)
+                log.info("P-factor layer produced")
+
+            progress.logProgress(codeBlock, outputFolder)
 
         ##############################
         ### Soil loss calculations ###
@@ -358,15 +416,20 @@ def function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode, lcOpt
 
         soilLoss = os.path.join(outputFolder, "soilloss")
 
-        if supportData is not None:
-            soilLossTemp = Raster(rFactor) * Raster(lsFactor) * Raster(kFactor) * Raster(cFactor) * Raster(pFactor)
+        codeBlock = 'Produce soil loss layer'
+        if not progress.codeSuccessfullyRun(codeBlock, outputFolder, rerun):
 
-        else:
-            soilLossTemp = Raster(rFactor) * Raster(lsFactor) * Raster(kFactor) * Raster(cFactor)
+            if supportData is not None:
+                soilLossTemp = Raster(rFactor) * Raster(lsFactor) * Raster(kFactor) * Raster(cFactor) * Raster(pFactor)
 
-        soilLossTemp.save(soilLoss)
+            else:
+                soilLossTemp = Raster(rFactor) * Raster(lsFactor) * Raster(kFactor) * Raster(cFactor)
 
-        log.info("RUSLE function completed successfully")
+            soilLossTemp.save(soilLoss)
+
+            log.info("RUSLE function completed successfully")
+
+            progress.logProgress(codeBlock, outputFolder)
 
         return soilLoss        
 

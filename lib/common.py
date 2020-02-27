@@ -469,6 +469,53 @@ def listEnvironmentSettings():
         # (The environments are accessed by key from arcpy.env.)
         log.info("{0:<30}: {1}".format(environment, arcpy.env[environment]))
 
+def readXML(XMLfile, nodeNameList, showErrors=True):
+
+    ''' 
+    Fetches values of nodes from an XML file.
+    These nodes must live as children of the top level node (typically <data>).
+
+    nodeNameList can either be a list of node names (strings) or a single node name (i.e. a string, no list brackets needed).
+    '''
+
+    try:
+        # Open file for reading
+        try:
+            tree = ET.parse(XMLfile)
+        except IOError:
+            if showErrors:
+                arcpy.AddError("XML File \"" + XMLfile + "\" does not exist or cannot be opened")
+            raise
+
+        root = tree.getroot()
+
+        # Handle nodeNameList being a single node name (a string)
+        if type(nodeNameList) is not list:
+            nodeNameList = [nodeNameList]
+
+        valueList = []
+        for nodeName in nodeNameList:
+
+            # Find value of node in XML file
+            node = root.find(nodeName)
+            if node is None:
+                value = ''
+            else:
+                value = node.text
+            valueList.append(value)
+
+        if len(valueList) == 0:
+            return None
+        elif len(valueList) == 1:
+            return valueList[0]
+        else:
+            return valueList
+
+    except Exception:
+        if showErrors:
+            arcpy.AddError("Data not read from XML file")
+        raise
+
 def writeXML(XMLfile, nodeNameValueList):
 
     ''' 
@@ -570,3 +617,21 @@ def writeXML(XMLfile, nodeNameValueList):
     except Exception:
         log.error("Data not written to XML file")
         raise
+
+def writeParamsToXML(params, folder, toolName=None):
+
+
+    xmlFile = os.path.join(folder, 'inputs.xml')
+    paramValueList = []
+
+    # Adding date and time to list
+    dateTime = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    paramValueList.append(('DateTimeRun', dateTime, 'Date/time ran'))
+
+    if toolName is not None:
+        paramValueList.append(('ToolName', toolName, 'Tool name'))
+
+    for param in params:
+        paramValueList.append((param.name, param.valueAsText, param.displayName))
+
+    writeXML(xmlFile, paramValueList)

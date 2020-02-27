@@ -3,6 +3,7 @@ import os
 
 import LUCI_SEEA.lib.log as log
 import LUCI_SEEA.lib.common as common
+import LUCI_SEEA.lib.progress as progress
 import LUCI_SEEA.solo.RUSLE as RUSLE
 
 from LUCI_SEEA.lib.refresh_modules import refresh_modules
@@ -39,16 +40,30 @@ def function(params):
 
         saveFactors = common.strToBool(pText[14])
 
-        # System checks and setup
-        if runSystemChecks:
-            common.runSystemChecks()
+        # Rerun parameter may not present when tool run as part of a batch run tool. If it is not, set rerun to False.
+        try:
+            rerun = common.strToBool(pText[15])
+        except IndexError:
+            rerun = False
+        except Exception:
+            raise
 
         # Create output folder
         if not os.path.exists(outputFolder):
             os.mkdir(outputFolder)
 
+        # System checks and setup
+        if runSystemChecks:
+            common.runSystemChecks(outputFolder, rerun)
+
         # Set up logging output to file
         log.setupLogging(outputFolder)
+
+        # Set up progress log file
+        progress.initProgress(outputFolder, rerun)
+
+        # Write input params to XML
+        common.writeParamsToXML(params, outputFolder)
 
         # Set soilOption for K-factor
         if kOption == 'Use the Harmonized World Soils Database (FAO)':
@@ -74,7 +89,8 @@ def function(params):
 
         # Call RUSLE function
         soilLoss = RUSLE.function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode,
-                                  lcOption, landCoverData, landCoverCode, rData, saveFactors, supportData)
+                                  lcOption, landCoverData, landCoverCode, rData, saveFactors, supportData,
+                                  rerun)
 
         # Set up filenames for display purposes
         soilLoss = os.path.join(outputFolder, "soilloss")

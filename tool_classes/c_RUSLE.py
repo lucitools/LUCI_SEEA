@@ -181,6 +181,16 @@ class RUSLE(object):
         param.value = u'false'
         params.append(param)
 
+        # 15 Rerun_tool
+        param = arcpy.Parameter()
+        param.name = u'Rerun_tool'
+        param.displayName = u'Rerun tool (will continue previous run from the point where any errors occurred)'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Boolean'
+        param.value = u'False'
+        params.append(param)
+
         return params
 
     def isLicensed(self):
