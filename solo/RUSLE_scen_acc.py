@@ -16,7 +16,7 @@ import LUCI_SEEA.solo.RUSLE as RUSLE
 from LUCI_SEEA.lib.refresh_modules import refresh_modules
 refresh_modules([log, common, RUSLE])
 
-def function(outputFolder, yearAFolder, yearBFolder, lsOption, rData, soilData, soilCode, YearALCData, YearALCCode, YearBLCData, YearBLCCode, YearAPData, YearBPData, saveFactors):
+def function(outputFolder, yearAFolder, yearBFolder, lsOption, yearARain, yearBRain, yearASupport, yearBSupport):
 
     try:
         # Set temporary variables
@@ -34,12 +34,18 @@ def function(outputFolder, yearAFolder, yearBFolder, lsOption, rData, soilData, 
         soilLossB = os.path.join(outputFolder, "soillossB")
         soilLossDiff = os.path.join(outputFolder, "soillossDiff")
 
-        # Set soil option for both years
-        soilOption = 'LocalSoil'
-
-        # Set LC option for both years
-        lcOption = 'LocalCfactor'
+        saveFactors = False
         
+        # Set the factor options for both years
+        soilOption = 'PreprocessSoil'
+        lcOption = 'PrerocessLC'
+
+        # Set options that are None for both years
+        soilData = None
+        soilCode = ''
+        landCoverData = None
+        landCoverCode = ''
+
         ################################
         ### Running RUSLE for Year A ###
         ################################
@@ -52,11 +58,10 @@ def function(outputFolder, yearAFolder, yearBFolder, lsOption, rData, soilData, 
         studyMaskA = filesA.studyareamask
 
         # Call RUSLE function for Year A        
-        soilLoss = RUSLE.function(outputFolder, yearAFolder, lsOption,
-                                  soilOption, soilData, soilCode,
-                                  lcOption, YearALCData, YearALCCode,
-                                  rData, saveFactors, YearAPData)
-        
+        soilLoss = RUSLE.function(outputFolder, yearAFolder, lsOption, soilOption,
+                                  soilData, soilCode, lcOption, landCoverData,
+                                  landCoverCode, yearARain, saveFactors, yearASupport)
+
         arcpy.CopyRaster_management(soilLoss, soilLossA)
 
         # Delete intermediate files
@@ -74,10 +79,9 @@ def function(outputFolder, yearAFolder, yearBFolder, lsOption, rData, soilData, 
         studyMaskB = filesB.studyareamask
 
         # Call RUSLE function for Year B
-        soilLoss = RUSLE.function(outputFolder, yearBFolder, lsOption,
-                                  soilOption, soilData, soilCode,
-                                  lcOption, YearBLCData, YearBLCCode,
-                                  rData, saveFactors, YearBPData)
+        soilLoss = RUSLE.function(outputFolder, yearBFolder, lsOption, soilOption,
+                                  soilData, soilCode, lcOption, landCoverData,
+                                  landCoverCode, yearBRain, saveFactors, yearBSupport)
 
         arcpy.CopyRaster_management(soilLoss, soilLossB)
 

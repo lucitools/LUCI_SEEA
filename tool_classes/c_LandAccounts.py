@@ -34,6 +34,7 @@ class LandAccounts(object):
     def __init__(self):
         self.label = u'Calculate land extent accounts'
         self.canRunInBackground = False
+        self.category = '4 Extent account tools'
 
     def getParameterInfo(self):
 

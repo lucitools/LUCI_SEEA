@@ -391,6 +391,20 @@ def addPath(obj, folder):
 
     return obj
 
+def dissolvePolygon(polygon):
+
+    # Takes a possibly multipart polygon and dissolves it
+
+    prefix = os.path.join(arcpy.env.scratchGDB, "diss_")
+    polyUnion = prefix + "polyUnion"
+    polyDiss = prefix + "polyDiss"
+
+    # Reduce multiple features where possible
+    arcpy.Union_analysis(polygon, polyUnion, "ONLY_FID", "", "NO_GAPS")
+    arcpy.Dissolve_management(polyUnion, polyDiss, "", "", "SINGLE_PART", "DISSOLVE_LINES")
+
+    return polyDiss
+
 def extractRasterMask(raster):
 
     # Takes a raster and returns its mask as a polygon
@@ -409,29 +423,50 @@ def extractRasterMask(raster):
 
     return polyMask
 
-def checkCoverage(maskA, maskB):
+def checkCoverage(maskA, maskB, inputFile=None):
 
-    # Checks the coverage between mask A and mask B
+    # Checks the coverage between polygons mask A and mask B
 
     # Set temporary variables
     prefix = os.path.join(arcpy.env.scratchGDB, "cover_")
+    maskACopy = prefix + "maskACopy"
+    maskBCopy = prefix + "maskBCopy"
     maskACoverage = prefix + "maskACoverage"
+
+    # Copy maskA and maskBCopy to temporary variables
+    arcpy.CopyFeatures_management(maskA, maskACopy)
+    arcpy.CopyFeatures_management(maskB, maskBCopy)
 
     percOut = 0
 
     if checkLicenceLevel('Advanced') or arcpy.ProductInfo() == "ArcServer":
 
+        # Check if the fields Area_ha exist in maskACopy and maskBCopy
+        # If they do, delete them
+
+        maskAFields = arcpy.ListFields(maskACopy)
+        for field in maskAFields:
+            if field.name == "Area_ha":
+                arcpy.DeleteField_management(maskACopy, "Area_ha")
+
+        maskBFields = arcpy.ListFields(maskBCopy)
+        for field in maskBFields:
+            if field.name == "Area_ha":
+                arcpy.DeleteField_management(maskBCopy, "Area_ha")
+
+        # Delete fields area_ha in in maskACopy and maskBCopy
+
         # Calculate total area of the coverage (study area or contributing area)
-        arcpy.AddField_management(maskB, "Area_ha", "DOUBLE")
+        arcpy.AddField_management(maskBCopy, "Area_ha", "DOUBLE")
         exp = "!SHAPE.AREA@HECTARES!"
-        arcpy.CalculateField_management(maskB, "Area_ha", exp, "PYTHON_9.3")
+        arcpy.CalculateField_management(maskBCopy, "Area_ha", exp, "PYTHON_9.3")
 
-        maskBVal = 0
-        for row in arcpy.da.SearchCursor(maskB, ["Area_ha"]):        
-            maskBVal += float(row[0])
+        maskBCopyVal = 0
+        for row in arcpy.da.SearchCursor(maskBCopy, ["Area_ha"]):        
+            maskBCopyVal += float(row[0])
 
-        # Use symmetrical difference to find which areas in maskA and maskB do not overlap
-        arcpy.SymDiff_analysis(maskA, maskB, maskACoverage)
+        # Use symmetrical difference to find which areas in maskA and maskBCopyCopy do not overlap
+        arcpy.SymDiff_analysis(maskACopy, maskBCopy, maskACoverage)
 
         # Check if there are non-overlapping areas in the land use and coverage
         rows = [row for row in arcpy.da.SearchCursor(maskACoverage, "*")]
@@ -449,13 +484,24 @@ def checkCoverage(maskA, maskB):
                 area += float(row[0])
 
             # Calculate percentage of the coverage area that the discrepancy covers
-            percOut = area / maskBVal * 100
+            percOut = float(area) / float(maskBCopyVal) * 100.0
+
+            if percOut > 2.5:
+                warning = 'Input data coverage is less tha 97.5 percent of the study area'
+                log.warning(warning)
+                common.logWarnings(outputFolder, warning)
+
+                warning = 'This may cause discrepancies in later calculations'
+                log.warning(warning)
+                common.logWarnings(outputFolder, warning)
+
+                warning = 'Please check this input: ' + str(inputFile)
+                log.warning(warning)
+                common.logWarnings(outputFolder, warning)
 
     else:
         log.warning('Coverage discrepancies between soil, land use, and coverage extent not checked as advanced license not present.')
         log.warning('Please ensure the soil and land use shapefile cover at least 97.5 percent of the coverage extent')
-
-    return percOut
 
 def listEnvironmentSettings():
 
@@ -635,3 +681,166 @@ def writeParamsToXML(params, folder, toolName=None):
         paramValueList.append((param.name, param.valueAsText, param.displayName))
 
     writeXML(xmlFile, paramValueList)
+
+def fullPath(source):
+    '''
+    When entering input parameters, a user may choose a layer that is already loaded into ArcGIS from a dropdown list
+    rather than entering a full path to the file. This function tests to see if this is the case, and if so then it returns the full file path.
+    '''
+    try:
+        
+        if source not in ['', '#'] and source is not None and not os.path.exists(source):
+
+            desc = arcpy.Describe(source)
+            path = desc.path
+            sourceFullPath = os.path.normpath(os.path.join(path, source))
+
+            if os.path.exists(sourceFullPath) or (path.endswith('.gdb') and os.path.exists(path)):
+                source = sourceFullPath
+
+        return source
+
+    except Exception:
+        log.error("Error occurred when finding full path of input parameter")
+        raise
+
+def equalProjections(proj1, proj2):
+
+    import re
+
+    # Convert the projections to WKT format
+    proj1WKT = proj1.exportToString()
+    proj2WKT = proj2.exportToString()
+
+    # Regular expressions strip off the projection name and geographic
+    # coordinate system name, and compares up until the last 'UNIT[....]' in
+    # the WKT
+    searchStr = re.compile('PROJCS\[\'.*?\',GEOGCS\[\'.*?\',')
+    proj1WKT = searchStr.sub('', proj1WKT)
+    proj2WKT = searchStr.sub('', proj2WKT)
+
+    searchStr = re.compile('\]\];.*')
+    proj1WKT = searchStr.sub('', proj1WKT)
+    proj2WKT = searchStr.sub('', proj2WKT)
+
+    matching = False
+    if proj1WKT.lower() == proj2WKT.lower():
+        # Exact string match
+        matching = True
+
+    return matching
+
+def logWarnings(folder, warningMsg):
+
+    ''' Writes the warning message to warnings.xml '''
+    time.sleep(0.05) # To correct for warnings that are within milliseconds of each other
+
+    xmlFile = os.path.join(folder, 'warnings.xml')
+    warningList = []
+
+    # Adding dateTime info
+    dateTime = datetime.datetime.now().strftime('%H%M%S%f')
+    warningTime = 'Warning_' + dateTime
+
+    warningList.append((warningTime, warningMsg))
+
+    writeXML(xmlFile, warningList)
+
+def getFilenames(toolType, folder, filePrefix='', fileSuffix=''):
+
+    # Create empty class
+    class Filenames:
+        pass
+
+    # Open filenames XML file
+    filenamesXML = configuration.filenamesFile
+    if not os.path.exists(filenamesXML):
+        log.error('Filenames XML does not exist')
+        sys.exit()
+    else:
+        tree = ET.parse(filenamesXML)
+        root = tree.getroot()
+
+        # Find the tool node for the desired tool
+        tools = root.findall('.tool[@name="' + toolType + '"]')
+
+        if len(tools) == 0:
+            log.error('Could not find tool "' + toolType + '" in filenames file')
+            sys.exit()
+        elif len(tools) > 1:
+            log.error('More than one tool found with the name ' + toolType + ' in filenames file')
+            sys.exit()
+        else:
+            tool = tools[0]
+
+            # Find all the filenames in the tool
+            props = []
+            for fname in tool:
+
+                prop = fname.get('property')
+                filetype = fname.get('filetype')
+                filename = fname.text
+
+                # Check that the property is unique in the tool
+                if prop in props:
+                    log.error('Property ' + prop + ' already exists in the filenames for tool ' + toolType)
+                else:
+                    props.append(prop)
+
+                # Add prefix and suffix to file if they exist
+                filename = filePrefix + filename + fileSuffix
+
+                # Rasters
+                if filetype == "raster": # Use GRID for rasters so filename is unchanged
+
+                    if len(filename) > 13:
+                        log.error('Filename for property ' + prop + ' cannot be longer than 13 characters')
+                        sys.exit()
+                    
+                # Vectors
+                if filetype == "vector":
+                    filename += ".shp" # Use shapefiles for vectors
+
+                # Tables
+                if filetype == "table":
+                    filename += ".dbf" # Use DBase files for tables
+
+                filePath = os.path.join(folder, filename)
+                setattr(Filenames, prop, filePath) # Add a property to the object
+
+    return Filenames
+
+def checkSpatialRef(data):
+
+    '''
+    Function checks the spatial reference of the data to ensure it has a spatial reference
+    and is in a projected coordinate system
+    '''
+
+    # Check data has a coordinate system specified
+    dataSpatialRef = arcpy.Describe(data).SpatialReference
+    if dataSpatialRef.Name == "Unknown":
+        log.error(str(data) + " does not have a defined spatial reference")
+        log.error("LUCI does not permit calculations without the spatial reference for inputs being defined.") 
+        log.error("Please define a projection for this data and try again.")
+        sys.exit()
+
+    # Reproject DEM if it has a geographic coordinate system
+    if dataSpatialRef.type == "Geographic":
+        log.error(str(data) + " is in a geographic coordinate system")
+        log.error("LUCI requires inputs to be in a projected coordinate system")
+        log.error("Please project this data to a projected coordinate system")
+        sys.exit()
+
+def getInputValue(folder, paramName, runType=None):
+
+    # Gets input value from the inputs.xml file
+ 
+    inputsXML = os.path.join(folder, 'inputs.xml')
+
+    if os.path.exists(inputsXML):
+        inputValue = readXML(inputsXML, paramName)
+    else:
+        inputValue = None
+ 
+    return inputValue

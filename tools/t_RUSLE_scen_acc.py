@@ -3,39 +3,27 @@ import os
 
 import LUCI_SEEA.lib.log as log
 import LUCI_SEEA.lib.common as common
-import LUCI_SEEA.solo.RUSLE_accounts as RUSLE_accounts
+import LUCI_SEEA.solo.RUSLE_scen_acc as RUSLE_scen_acc
 
 from LUCI_SEEA.lib.refresh_modules import refresh_modules
-refresh_modules([log, common, RUSLE_accounts])
+refresh_modules([log, common, RUSLE_scen_acc])
 
 def function(params):
 
     try:
         pText = common.paramsAsText(params)
+
         # Get inputs
         runSystemChecks = common.strToBool(pText[1])
         outputFolder = pText[5]
 
         yearAFolder = pText[6]
         yearBFolder = pText[7]
-
-        # Inputs constant between the two years
         slopeOption = pText[8]
-        rData = pText[9]
-        soilData = pText[10]
-        soilCode = pText[11]
-
-        # Land covers
-        YearALCData = pText[12]
-        YearALCCode = pText[13]
-        YearBLCData = pText[14]
-        YearBLCCode = pText[15]
-
-        # Support factors
-        YearAPData = pText[16]
-        YearBPData = pText[17]
-        
-        saveFactors = False
+        yearARain = pText[9]
+        yearBRain = pText[10]
+        yearASupport = pText[11]
+        yearBSupport = pText[12]
 
         # Set option for LS-factor
         if slopeOption == 'Calculate based on slope and length only':
@@ -47,7 +35,7 @@ def function(params):
         else:
             log.error('Invalid LS-factor option')
             sys.exit()
-
+        
         # System checks and setup
         if runSystemChecks:
             common.runSystemChecks()
@@ -59,12 +47,9 @@ def function(params):
         # Set up logging output to file
         log.setupLogging(outputFolder)
         
-        # Call RUSLE_accounts function
-
-        RUSLE_accounts.function(outputFolder, yearAFolder, yearBFolder,
-                                lsOption, rData, soilData, soilCode,
-                                YearALCData, YearALCCode, YearBLCData, YearBLCCode,
-                                YearAPData, YearBPData, saveFactors)
+        # Call RUSLE_scen_acc function
+        RUSLE_scen_acc.function(outputFolder, yearAFolder, yearBFolder, lsOption,
+                                yearARain, yearBRain, yearASupport, yearBSupport)
 
         # Set up filenames for display purposes
         soilLossA = os.path.join(outputFolder, "soillossA")

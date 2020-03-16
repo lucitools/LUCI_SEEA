@@ -63,7 +63,7 @@ class CreateDataAggregationGrid(object):
         self.label = u'Create data aggregation grid'
         self.description = u'Creates a grid over the input data with its size defined by the user. The grid will typically be used as input to the aggregation tools.'
         self.canRunInBackground = False
-        self.category = "1 Aggregation Tools"
+        self.category = "2 Aggregation tools"
 
     def getParameterInfo(self):
 
@@ -123,7 +123,7 @@ class CreateDataAggregationGrid(object):
         param.parameterType = 'Optional'
         param.direction = 'Input'
         param.datatype = u'Double'
-        param.value = u'100'
+        param.value = u'1000'
         params.append(param)
 
         # 6 Proportion_cell_area

@@ -57,17 +57,17 @@ def function(inputExtent, outGrid, cellSize, proportionCellArea, gridCoverage, g
 
             # Determine grid cells that should be removed from rectangular grid
             # First, intersect the grid with the boundary shapefile
-            arcpy.AddMessage('Intersecting...')
+            log.info('Intersecting...')
             arcpy.Intersect_analysis([inputExtent, outGrid], intersection, join_attributes="ONLY_FID")
 
             # Then erase the intersection from the rectangular grid
-            arcpy.AddMessage('Erasing...')
+            log.info('Erasing...')
             arcpy.Erase_analysis(in_features=outGrid,
                                  erase_features=intersection,
                                  out_feature_class=gridMinusIntersection)
 
             # Create and calculate area field
-            arcpy.AddMessage('Calculating area...')
+            log.info('Calculating area...')
             arcpy.AddField_management(gridMinusIntersection, 'Area', "DOUBLE")
             arcpy.CalculateField_management(gridMinusIntersection, 'Area', "!SHAPE.AREA!", "PYTHON_9.3")
 
@@ -86,7 +86,7 @@ def function(inputExtent, outGrid, cellSize, proportionCellArea, gridCoverage, g
                                   where_clause='"Area" >= ' + str(cellAreaThreshold))
 
             # Perform spatial join so that we only get full cells
-            arcpy.AddMessage('Spatial join...')
+            log.info('Spatial join...')
             arcpy.SpatialJoin_analysis(target_features=outGrid,
                                        join_features=forRemovalWithEdges,
                                        out_feature_class=forRemoval,
@@ -95,7 +95,7 @@ def function(inputExtent, outGrid, cellSize, proportionCellArea, gridCoverage, g
                                        match_option="CONTAINS")
 
             # Remove cells from rectangular grid that don't meet area criteria
-            arcpy.AddMessage('Erasing...')
+            log.info('Erasing...')
             arcpy.Erase_analysis(in_features=outGrid,
                                  erase_features=forRemoval,
                                  out_feature_class=outGridTemp)

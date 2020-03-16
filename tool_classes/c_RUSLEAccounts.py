@@ -32,8 +32,9 @@ class RUSLEAccounts(object):
             input_validation.checkFilePaths(self)
     
     def __init__(self):
-        self.label = u'Calculate soil loss accounts (RUSLE) using two land use datasets'
+        self.label = u'Calculate soil loss accounts using different factor layers'
         self.canRunInBackground = False
+        self.category = '3 RUSLE tools'
 
     def getParameterInfo(self):
 
@@ -56,8 +57,7 @@ class RUSLEAccounts(object):
         param.direction = 'Output'
         param.datatype = u'Boolean'
         param.value = u'True'
-        params.append(param)
-        
+        params.append(param)        
 
         # 2 Output_Layer_Soil_Loss_Year_A
         param = arcpy.Parameter()
@@ -98,16 +98,36 @@ class RUSLEAccounts(object):
         param.datatype = u'Folder'
         params.append(param)
 
-        # 6 Study area mask
+        # 6 YearA_ScenarioFolder
         param = arcpy.Parameter()
-        param.name = u'Study_area_mask'
-        param.displayName = u'Study area mask'
-        param.parameterType = 'Optional'
+        param.name = u'YearA_ScenarioFolder'
+        param.displayName = u'Year A: Scenario folder'
+        param.parameterType = 'Required'
         param.direction = 'Input'
-        param.datatype = u'Feature Class'
+        param.datatype = u'Folder'
         params.append(param)
 
-        # 7 Rainfall erosivity
+        # 7 YearB_ScenarioFolder
+        param = arcpy.Parameter()
+        param.name = u'YearB_ScenarioFolder'
+        param.displayName = u'Year B: Scenario folder'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Folder'
+        params.append(param)
+
+        # 8 LS-factor option
+        param = arcpy.Parameter()
+        param.name = u'LS_option'
+        param.displayName = u'LS-factor: Method option'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        param.value = u'Calculate based on slope and length only'
+        param.filter.list = [u'Calculate based on slope and length only', u'Include upslope contributing area']
+        params.append(param) 
+
+        # 9 Rainfall erosivity
         param = arcpy.Parameter()
         param.name = u'Rainfall_erosivity'
         param.displayName = u'R-factor: Rainfall erosivity dataset'
@@ -116,30 +136,10 @@ class RUSLEAccounts(object):
         param.datatype = u'Raster Layer'
         params.append(param)
         
-        # 8 Digital Elevation Model
-        param = arcpy.Parameter()
-        param.name = u'Digital_Elevation_Model'
-        param.displayName = u'LS-factor: Digital Elevation Model'
-        param.parameterType = 'Required'
-        param.direction = 'Input'
-        param.datatype = u'Raster Layer'
-        params.append(param)
-
-        # 9 K-factor option
-        param = arcpy.Parameter()
-        param.name = u'Kfactor_option'
-        param.displayName = u'K-factor: Soil erodibility option'
-        param.parameterType = 'Required'
-        param.direction = 'Input'
-        param.datatype = u'String'
-        param.value = u'Use the Harmonized World Soils Database (FAO)'
-        param.filter.list = [u'Use the Harmonized World Soils Database (FAO)', u'Use local K-factor dataset']
-        params.append(param)
-
         # 10 Soils
         param = arcpy.Parameter()
-        param.name = u'Soils'
-        param.displayName = u'K-factor: Soil or erodibility dataset'
+        param.name = u'Erodibility_dataset'
+        param.displayName = u'K-factor: Soil erodibility dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = [u'Feature Class', u'Raster Layer']
@@ -154,27 +154,16 @@ class RUSLEAccounts(object):
         param.datatype = u'String'        
         params.append(param)
 
-        # 12 C-factor option for Year A
-        param = arcpy.Parameter()
-        param.name = u'Cfactor_option_A'
-        param.displayName = u'C-factor for Year A: Land cover option'
-        param.parameterType = 'Required'
-        param.direction = 'Input'
-        param.datatype = u'String'
-        param.value = u'Use the ESA CCI'
-        param.filter.list = [u'Use the ESA CCI', u'Use local C-factor dataset']
-        params.append(param)
-
-        # 13 Land_cover_A
+        # 12 Land_cover_A
         param = arcpy.Parameter()
         param.name = u'Land_cover_A'
-        param.displayName = u'C-factor for Year A: Land cover or cover factor dataset'
+        param.displayName = u'C-factor for Year A: Land cover factor dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 14 Land_cover_linking_code_A
+        # 13 Land_cover_linking_code_A
         param = arcpy.Parameter()
         param.name = u'Land_cover_linking_code_A'
         param.displayName = u'C-factor for Year A: Land cover linking code'
@@ -183,36 +172,16 @@ class RUSLEAccounts(object):
         param.datatype = u'String'
         params.append(param)
 
-        # 15 Pfactor_dataset_A
-        param = arcpy.Parameter()
-        param.name = u'Pfactor_dataset_A'
-        param.displayName = u'P-factor for Year A: Support practice dataset'
-        param.parameterType = 'Optional'
-        param.direction = 'Input'
-        param.datatype = 'Raster Layer'
-        params.append(param)
-
-        # 16 C-factor option for Year B
-        param = arcpy.Parameter()
-        param.name = u'Cfactor_option_B'
-        param.displayName = u'C-factor for Year B: Land cover option'
-        param.parameterType = 'Required'
-        param.direction = 'Input'
-        param.datatype = u'String'
-        param.value = u'Use the ESA CCI'
-        param.filter.list = [u'Use the ESA CCI', u'Use local C-factor dataset']
-        params.append(param)
-
-        # 17 Land_cover_B
+        # 14 Land_cover_B
         param = arcpy.Parameter()
         param.name = u'Land_cover_B'
-        param.displayName = u'C-factor for Year B: Land cover or cover factor dataset'
+        param.displayName = u'C-factor for Year B: Land cover factor dataset'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 18 Land_cover_linking_code_B
+        # 15 Land_cover_linking_code_B
         param = arcpy.Parameter()
         param.name = u'Land_cover_linking_code_B'
         param.displayName = u'C-factor for Year B: Land cover linking code'
@@ -221,7 +190,16 @@ class RUSLEAccounts(object):
         param.datatype = u'String'
         params.append(param)
 
-        # 19 Pfactor_dataset_B
+        # 16 Pfactor_dataset_A
+        param = arcpy.Parameter()
+        param.name = u'Pfactor_dataset_A'
+        param.displayName = u'P-factor for Year A: Support practice dataset'
+        param.parameterType = 'Optional'
+        param.direction = 'Input'
+        param.datatype = 'Raster Layer'
+        params.append(param)
+
+        # 17 Pfactor_dataset_B
         param = arcpy.Parameter()
         param.name = u'Pfactor_dataset_B'
         param.displayName = u'P-factor for Year B: Support practice dataset'

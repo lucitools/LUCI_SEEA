@@ -63,7 +63,7 @@ class PAspeciesRichness(object):
         self.label = u'Create data aggregation grid'
         self.description = u'Creates a grid over the input data with its size defined by the user. The grid will typically be used as input to the aggregation tools.'
         self.canRunInBackground = False
-        self.category = "1 Aggregation Tools"
+        self.category = "2 Aggregation tools"
 
     def getParameterInfo(self):
 

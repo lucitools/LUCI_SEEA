@@ -35,22 +35,14 @@ class ChangeUserSettings(object):
                         scratchPath = common.readXML(userSettings, 'scratchPath')
                         if scratchPath:
                             self.params[1].value = scratchPath
-
-                    # Basemap
+                                                # Developer mode
                     if not self.params[2].altered:
-                        basemap = common.readXML(userSettings, 'basemap')
-                        if basemap:
-                            self.params[2].value = basemap
-
-                    # Developer mode
-                    if not self.params[3].altered:
                         if common.readXML(userSettings, 'developerMode') == 'Yes':
-                            self.params[3].value = u'True'
+                            self.params[2].value = u'True'
 
                 # If the values have not been read from the configuration file, populate the values with defaults
                 defaults = {
                     'scratchPath': configuration.scratchPath,
-                    'basemap': u'World topographic',
                     'developerMode': u'False'
                 }
 
@@ -63,22 +55,17 @@ class ChangeUserSettings(object):
 
                     self.params[1].value = defaults['scratchPath']
 
-                # Basemap
-                if self.params[2].value is None:
-                    self.params[2].value = defaults['basemap']
-
                 # Developer mode
-                if self.params[3].value is None:
-                    self.params[3].value = defaults['developerMode']
+                if self.params[2].value is None:
+                    self.params[2].value = defaults['developerMode']
 
             except Exception:
                 pass
 
-            if self.params[4].valueAsText.lower() == 'true':
+            if self.params[3].valueAsText.lower() == 'true':
 
                 self.params[1].value = defaults['scratchPath']
-                self.params[2].value = defaults['basemap']
-                self.params[3].value = defaults['developerMode']
+                self.params[2].value = defaults['developerMode']
     
         def updateMessages(self):
             """Modify the messages created by internal validation for each tool parameter.
@@ -92,6 +79,7 @@ class ChangeUserSettings(object):
     def __init__(self):
         self.label = u'Change user settings'
         self.canRunInBackground = False
+        self.category = 'Miscellaneous'
 
     def getParameterInfo(self):
 
@@ -115,17 +103,7 @@ class ChangeUserSettings(object):
         param.datatype = u'Folder'
         params.append(param)
 
-        # 2 Basemap
-        param = arcpy.Parameter()
-        param.name = u'Basemap'
-        param.displayName = u'Basemap'
-        param.parameterType = 'Required'
-        param.direction = 'Input'
-        param.datatype = u'String'
-        param.filter.list = [u'NZ community', u'NZ topographic', u'World topographic']
-        params.append(param)
-
-        # 3 Developer_mode
+        # 2 Developer_mode
         param = arcpy.Parameter()
         param.name = u'Developer_mode'
         param.displayName = u'Use developer mode?'
@@ -135,7 +113,7 @@ class ChangeUserSettings(object):
         # param.value = u'False'
         params.append(param)
 
-        # 4 Reset_all_settings
+        # 3 Reset_all_settings
         param = arcpy.Parameter()
         param.name = u'Reset_all_settings'
         param.displayName = u'Reset all settings to their default values'

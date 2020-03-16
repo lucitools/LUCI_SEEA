@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<data>
+	<tool name="preprocess">
+		<filename property="studyareamask" filetype="vector">studyareamask</filename>
+		<filename property="rawDEM" filetype="raster">rawDEM</filename>
+		<filename property="hydDEM" filetype="raster">hydDEM</filename>
+		<filename property="hydFDR" filetype="raster">hydFDR</filename>
+		<filename property="hydFDRDegrees" filetype="raster">hydFDRDegrees</filename>
+		<filename property="hydFAC" filetype="raster">hydFAC</filename>
+		<filename property="streamInvRas" filetype="raster">streamInvRas</filename>
+		<filename property="streams" filetype="vector">streams</filename>
+		<filename property="streamDisplay" filetype="vector">streamDisplay</filename>
+		<filename property="multRaster" filetype="raster">multRaster</filename>
+		<filename property="hydFACInt" filetype="raster">hydFACInt</filename>
+		<filename property="slopeRawDeg" filetype="raster">slopeRawDeg</filename>
+		<filename property="slopeRawPer" filetype="raster">slopeRawPer</filename>
+		<filename property="slopeHydDeg" filetype="raster">slopeHydDeg</filename>
+		<filename property="slopeHydPer" filetype="raster">slopeHydPer</filename>
+		<filename property="lc_ras" filetype="raster">lc_ras</filename>
+		<filename property="lc_vec" filetype="vector">lc_vec</filename>
+		<filename property="soil_ras" filetype="raster">soil_ras</filename>
+		<filename property="soil_vec" filetype="vector">soil_vec</filename>
+	</tool>
+	<tool name="rusle">		
+		<filename property="soilloss" filetype="raster">soilloss</filename>
+		<filename property="rFactor" filetype="raster">rFactor</filename>
+		<filename property="lsFactor" filetype="raster">lsFactor</filename>
+		<filename property="kFactor" filetype="raster">kFactor</filename>
+		<filename property="cFactor" filetype="raster">cFactor</filename>
+		<filename property="pFactor" filetype="raster">pFactor</filename>
+	</tool>
+</data>

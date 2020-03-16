@@ -18,8 +18,7 @@ def function(params):
     # Get inputs
     p = common.paramsAsText(params)
     scratchPath = p[1]
-    basemap = p[2]
-    developerMode = common.strToBool(p[3])
+    developerMode = common.strToBool(p[2])
 
     if developerMode == True:
         developerMode = 'Yes'
@@ -29,14 +28,12 @@ def function(params):
     # Override the default values from user settings file (if they exist in the file)
     try:
         configValues = [('scratchPath', scratchPath),
-                        ('basemap', basemap),
                         ('developerMode', developerMode)]
 
         common.writeXML(configuration.userSettingsFile, configValues)
 
-        arcpy.AddMessage('Scratch path updated: ' + scratchPath)
-        arcpy.AddMessage('Basemap updated: ' + basemap)
-        arcpy.AddMessage('Developer mode updated: ' + developerMode)
+        log.info('Scratch path updated: ' + scratchPath)
+        log.info('Developer mode updated: ' + developerMode)
 
     except Exception:
         raise

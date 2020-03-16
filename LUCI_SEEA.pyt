@@ -41,6 +41,10 @@ AggregateData = c_AggregateData.AggregateData
 ### Other tools ###
 ###################
 
+import LUCI_SEEA.tool_classes.c_PreprocessDEM as c_PreprocessDEM
+refresh_modules(c_PreprocessDEM)
+PreprocessDEM = c_PreprocessDEM.PreprocessDEM
+
 import LUCI_SEEA.tool_classes.c_RUSLE as c_RUSLE
 refresh_modules(c_RUSLE)
 RUSLE = c_RUSLE.RUSLE
@@ -48,6 +52,10 @@ RUSLE = c_RUSLE.RUSLE
 import LUCI_SEEA.tool_classes.c_RUSLEAccounts as c_RUSLEAccounts
 refresh_modules(c_RUSLEAccounts)
 RUSLEAccounts = c_RUSLEAccounts.RUSLEAccounts
+
+import LUCI_SEEA.tool_classes.c_RUSLEAccScen as c_RUSLEAccScen
+refresh_modules(c_RUSLEAccScen)
+RUSLEAccScen = c_RUSLEAccScen.RUSLEAccScen
 
 import LUCI_SEEA.tool_classes.c_LandAccounts as c_LandAccounts
 refresh_modules(c_LandAccounts)
@@ -70,4 +78,4 @@ class Toolbox(object):
     def __init__(self):
         self.label = u'LUCI freely available'
         self.alias = u'LUCI'
-        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, RUSLEAccounts, LandAccounts, PAspeciesRichness, ChangeUserSettings]
+        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, RUSLEAccounts, RUSLEAccScen, LandAccounts, PAspeciesRichness, ChangeUserSettings, PreprocessDEM]

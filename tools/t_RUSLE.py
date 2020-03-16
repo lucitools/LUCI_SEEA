@@ -17,13 +17,13 @@ def function(params):
         # Get inputs
         runSystemChecks = common.strToBool(pText[1])
         outputFolder = pText[2]
-        studyMask = pText[4]
+        preprocessFolder = pText[4]
 
         # R-factor
         rData = pText[5]
 
         # LS-factor
-        DEM = pText[6]
+        slopeOption = pText[6]
 
         # K-factor
         kOption = pText[7]
@@ -65,9 +65,20 @@ def function(params):
         # Write input params to XML
         common.writeParamsToXML(params, outputFolder)
 
+        # Set option for LS-factor
+        if slopeOption == 'Calculate based on slope and length only':
+            lsOption = 'SlopeLength'
+
+        elif slopeOption == 'Include upslope contributing area':
+            lsOption = 'UpslopeArea'
+
+        else:
+            log.error('Invalid LS-factor option')
+            sys.exit()
+
         # Set soilOption for K-factor
-        if kOption == 'Use the Harmonized World Soils Database (FAO)':
-            soilOption = 'HWSD'
+        if kOption == 'Use preprocessed soil data':
+            soilOption = 'PreprocessSoil'
 
         elif kOption == 'Use local K-factor dataset':
             soilOption = 'LocalSoil'
@@ -77,8 +88,8 @@ def function(params):
             sys.exit()
 
         # Set lcOption for C-factor
-        if cOption == 'Use the ESA CCI':
-            lcOption = 'ESACCI'
+        if cOption == 'Use preprocessed land cover data':
+            lcOption = 'PrerocessLC'
 
         elif cOption == 'Use local C-factor dataset':
             lcOption = 'LocalCfactor'
@@ -88,7 +99,7 @@ def function(params):
             sys.exit()
 
         # Call RUSLE function
-        soilLoss = RUSLE.function(outputFolder, studyMask, DEM, soilOption, soilData, soilCode,
+        soilLoss = RUSLE.function(outputFolder, preprocessFolder, lsOption, soilOption, soilData, soilCode,
                                   lcOption, landCoverData, landCoverCode, rData, saveFactors, supportData,
                                   rerun)
 

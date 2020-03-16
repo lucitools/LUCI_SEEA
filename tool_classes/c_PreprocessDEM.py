@@ -1,9 +1,9 @@
 import arcpy
-import configuration
 import os
+import configuration
 from LUCI_SEEA.lib.refresh_modules import refresh_modules
 
-class RUSLE(object):
+class PreprocessDEM(object):
 
     class ToolValidator:
         """Class for validating a tool's parameter values and controlling the behavior of the tool's dialog."""
@@ -32,9 +32,10 @@ class RUSLE(object):
             input_validation.checkFilePaths(self)
     
     def __init__(self):
-        self.label = u'Calculate soil loss (RUSLE)'
+        self.label = u'Preprocess data'
+        self.description = u''
         self.canRunInBackground = False
-        self.category = '3 RUSLE tools'
+        self.category = '1 Preprocess data'
 
     def getParameterInfo(self):
 
@@ -49,17 +50,7 @@ class RUSLE(object):
         param.datatype = u'Boolean'
         params.append(param)
 
-        # 1 Run_system_checks
-        param = arcpy.Parameter()
-        param.name = u'Run_system_checks'
-        param.displayName = u'Run_system_checks'
-        param.parameterType = 'Derived'
-        param.direction = 'Output'
-        param.datatype = u'Boolean'
-        param.value = u'True'
-        params.append(param)
-
-        # 2 Output_folder
+        # 1 Output_folder
         param = arcpy.Parameter()
         param.name = u'Output_folder'
         param.displayName = u'Output folder'
@@ -68,123 +59,130 @@ class RUSLE(object):
         param.datatype = u'Folder'
         params.append(param)
 
-        # 3 Output_Layer_Soil_Loss
+        # 2 Digital_elevation_model
         param = arcpy.Parameter()
-        param.name = u'Output_Layer_Soil_Loss'
-        param.displayName = u'Soil loss (tons/ha/yr)'
-        param.parameterType = 'Derived'
-        param.direction = 'Output'
-        param.datatype = u'Raster Layer'
-        param.symbology = os.path.join(configuration.displayPath, "soilloss.lyr")
-        params.append(param)
-
-        # 4 Preprocess_folder
-        param = arcpy.Parameter()
-        param.name = u'Preprocess_folder'
-        param.displayName = u'Preprocessed data folder'
-        param.parameterType = 'Required'
-        param.direction = 'Input'
-        param.datatype = u'Folder'
-        params.append(param)
-
-        # 5 Rainfall erosivity
-        param = arcpy.Parameter()
-        param.name = u'Rainfall_erosivity'
-        param.displayName = u'R-factor: Rainfall erosivity dataset'
+        param.name = u'Digital_elevation_model'
+        param.displayName = u'Digital elevation model (DEM)'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'Raster Layer'
         params.append(param)
 
-        # 6 LS-factor option
+        # 3 Study_area_mask
         param = arcpy.Parameter()
-        param.name = u'LS_option'
-        param.displayName = u'LS-factor: Method option'
+        param.name = u'Study_area_mask'
+        param.displayName = u'Study area mask'
         param.parameterType = 'Required'
         param.direction = 'Input'
-        param.datatype = u'String'
-        param.value = u'Calculate based on slope and length only'
-        param.filter.list = [u'Calculate based on slope and length only', u'Include upslope contributing area']
-        params.append(param) 
-        
-        # 7 K-factor option
-        param = arcpy.Parameter()
-        param.name = u'Kfactor_option'
-        param.displayName = u'K-factor: Soil erodibility option'
-        param.parameterType = 'Required'
-        param.direction = 'Input'
-        param.datatype = u'String'
-        param.value = u'Use preprocessed soil data'
-        param.filter.list = [u'Use preprocessed soil data', u'Use local K-factor dataset']
+        param.datatype = u'Feature Class'
         params.append(param)
 
-        # 8 Soils
-        param = arcpy.Parameter()
-        param.name = u'Soils'
-        param.displayName = u'K-factor: Soil erodibility dataset'
-        param.parameterType = 'Optional'
-        param.direction = 'Input'
-        param.datatype = [u'Feature Class', u'Raster Layer']
-        params.append(param)
-
-        # 9 Soil_linking_code
-        param = arcpy.Parameter()
-        param.name = u'Soil_linking_code'
-        param.displayName = u'K-factor: Soil linking code'
-        param.parameterType = 'Optional'
-        param.direction = 'Input'
-        param.datatype = u'String'        
-        params.append(param)
-
-        # 10 C-factor option
-        param = arcpy.Parameter()
-        param.name = u'Cfactor_option'
-        param.displayName = u'C-factor: Land cover option'
-        param.parameterType = 'Required'
-        param.direction = 'Input'
-        param.datatype = u'String'
-        param.value = u'Use preprocessed land cover data'
-        param.filter.list = [u'Use preprocessed land cover data', u'Use local C-factor dataset']
-        params.append(param)
-
-        # 11 Land_cover
+        # 4 Land_cover
         param = arcpy.Parameter()
         param.name = u'Land_cover'
-        param.displayName = u'C-factor: Cover factor dataset'
-        param.parameterType = 'Optional'
+        param.displayName = u'Land cover dataset'
+        param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 12 Land_cover_linking_code
+        # 5 Land_cover_linking_code
         param = arcpy.Parameter()
         param.name = u'Land_cover_linking_code'
-        param.displayName = u'C-factor: Land cover linking code'
-        param.parameterType = 'Optional'
+        param.displayName = u'Land cover linking code'
+        param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'String'
         params.append(param)
 
-        # 13 Pfactor_dataset
+        # 6 Soil
         param = arcpy.Parameter()
-        param.name = u'Pfactor_dataset'
-        param.displayName = u'P-factor: Support practice dataset'
-        param.parameterType = 'Optional'
+        param.name = u'Soil'
+        param.displayName = u'Soil dataset'
+        param.parameterType = 'Required'
         param.direction = 'Input'
-        param.datatype = 'Raster Layer'
+        param.datatype = [u'Feature Class', u'Raster Layer']
         params.append(param)
 
-        # 14 Save_factor_layers
+        # 7 Soil_linking_code
         param = arcpy.Parameter()
-        param.name = u'Save_factor_layers'
-        param.displayName = u'Save factor layers?'
+        param.name = u'Soil_linking_code'
+        param.displayName = u'Soil linking code'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        params.append(param)
+
+        # 8 Recondition DEM        
+        param = arcpy.Parameter()
+        param.name = u'Recondition_DEM'
+        param.displayName = u'Recondition DEM?'
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'Boolean'
         param.value = u'False'
         params.append(param)
 
-        # 15 Rerun_tool
+        # 9 Stream network
+        param = arcpy.Parameter()
+        param.name = u'Stream_network'
+        param.displayName = u'Stream network'
+        param.parameterType = 'Optional'
+        param.direction = 'Input'
+        param.datatype = u'Feature Class'
+        params.append(param)
+
+        # 10 Minimum accumulation threshold
+        param = arcpy.Parameter()
+        param.name = u'Stream_initiation_accumulation_threshold'
+        param.displayName = u'Accumulation threshold for stream initiation (ha)'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Double'
+        param.value = u'10'
+        params.append(param)
+
+        # 11 Major accumulation threshold
+        param = arcpy.Parameter()
+        param.name = u'River_initiation_accumulation_threshold'
+        param.displayName = u'Accumulation threshold for major rivers (ha)'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Double'
+        param.value = u'200'
+        params.append(param)
+
+        # 12 Smooth drop buffer
+        param = arcpy.Parameter()
+        param.name = u'Stream_smooth_drop_buffer_distance'
+        param.displayName = u'Stream smooth drop buffer distance (m)'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Double'
+        param.value = u'75'
+        params.append(param)
+
+        # 13 Smooth drop        
+        param = arcpy.Parameter()
+        param.name = u'Stream_drop_buffer'
+        param.displayName = u'Stream smooth drop (m)'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Double'
+        param.value = u'2'
+        params.append(param)
+
+        # 14 Stream drop
+        param = arcpy.Parameter()
+        param.name = u'Stream_drop'
+        param.displayName = u'Stream drop (m)'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Double'
+        param.value = u'3'
+        params.append(param)
+
+        # 15 Rerun        
         param = arcpy.Parameter()
         param.name = u'Rerun_tool'
         param.displayName = u'Rerun tool (will continue previous run from the point where any errors occurred)'
@@ -211,7 +209,7 @@ class RUSLE(object):
 
     def execute(self, parameters, messages):
 
-        import LUCI_SEEA.tools.t_RUSLE as t_RUSLE
-        refresh_modules(t_RUSLE)
+        import LUCI_SEEA.tools.t_preprocess_dem as t_preprocess_dem
+        refresh_modules(t_preprocess_dem)
 
-        t_RUSLE.function(parameters)
+        t_preprocess_dem.function(parameters)
