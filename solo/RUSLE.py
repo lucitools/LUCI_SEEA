@@ -297,7 +297,7 @@ def function(outputFolder, preprocessFolder, lsOption, soilOption, soilData, soi
                 arcpy.JoinField_management(soilClip, "VALUE", kTable, "MU_GLOBAL")
                 arcpy.CopyRaster_management(soilClip, soilJoin)
 
-                kOrigTemp = Lookup(soilJoin, "KFACTOR_SI")
+                kOrigTemp = Lookup(soilJoin, "K_Stewart")
                 kOrigTemp.save(kFactor)
 
             elif soilOption == 'LocalSoil':
