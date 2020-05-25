@@ -69,6 +69,14 @@ import LUCI_SEEA.tool_classes.c_ChangeUserSettings as c_ChangeUserSettings
 refresh_modules(c_ChangeUserSettings)
 ChangeUserSettings = c_ChangeUserSettings.ChangeUserSettings
 
+import LUCI_SEEA.tool_classes.c_StatsZonal as c_StatsZonal
+refresh_modules(c_StatsZonal)
+StatsZonal = c_StatsZonal.CalculateZonal
+
+import LUCI_SEEA.tool_classes.c_StatsExtent as c_StatsExtent
+refresh_modules(c_StatsExtent)
+StatsExtent = c_StatsExtent.CalculateExtent
+
 ##########################
 ### Toolbox definition ###
 ##########################
@@ -78,4 +86,4 @@ class Toolbox(object):
     def __init__(self):
         self.label = u'LUCI freely available'
         self.alias = u'LUCI'
-        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, RUSLEAccounts, RUSLEAccScen, LandAccounts, PAspeciesRichness, ChangeUserSettings, PreprocessDEM]
+        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, RUSLEAccounts, RUSLEAccScen, LandAccounts, PAspeciesRichness, ChangeUserSettings, PreprocessDEM, StatsZonal, StatsExtent]
