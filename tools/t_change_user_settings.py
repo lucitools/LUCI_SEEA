@@ -6,10 +6,11 @@ import arcpy
 import os
 
 import configuration
+import LUCI_SEEA.lib.log as log
 import LUCI_SEEA.lib.common as common
 
 from LUCI_SEEA.lib.refresh_modules import refresh_modules
-refresh_modules([common])
+refresh_modules([log, common])
 
 def function(params):
 
