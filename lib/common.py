@@ -489,15 +489,12 @@ def checkCoverage(maskA, maskB, inputFile=None):
             if percOut > 2.5:
                 warning = 'Input data coverage is less tha 97.5 percent of the study area'
                 log.warning(warning)
-                common.logWarnings(outputFolder, warning)
 
                 warning = 'This may cause discrepancies in later calculations'
                 log.warning(warning)
-                common.logWarnings(outputFolder, warning)
 
                 warning = 'Please check this input: ' + str(inputFile)
                 log.warning(warning)
-                common.logWarnings(outputFolder, warning)
 
     else:
         log.warning('Coverage discrepancies between soil, land use, and coverage extent not checked as advanced license not present.')
