@@ -77,6 +77,10 @@ import LUCI_SEEA.tool_classes.c_StatsExtent as c_StatsExtent
 refresh_modules(c_StatsExtent)
 StatsExtent = c_StatsExtent.CalculateExtent
 
+import LUCI_SEEA.tool_classes.c_MEDUSA as c_MEDUSA
+refresh_modules(c_MEDUSA)
+MEDUSA = c_MEDUSA.MEDUSA
+
 ##########################
 ### Toolbox definition ###
 ##########################
@@ -86,4 +90,4 @@ class Toolbox(object):
     def __init__(self):
         self.label = u'LUCI freely available'
         self.alias = u'LUCI'
-        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, RUSLEAccounts, RUSLEAccScen, LandAccounts, PAspeciesRichness, ChangeUserSettings, PreprocessDEM, StatsZonal, StatsExtent]
+        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, RUSLEAccounts, RUSLEAccScen, LandAccounts, PAspeciesRichness, ChangeUserSettings, PreprocessDEM, StatsZonal, StatsExtent, MEDUSA]
