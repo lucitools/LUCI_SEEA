@@ -241,7 +241,7 @@ def function(outputFolder, preprocessFolder, lsOption, soilOption, soilData, soi
                 DEMSlopeCutTemp.save(DEMSlopeCut)
 
                 # Calculate the parts of the LS-factor equation separately
-                lsCalcA = Power((cellsizedem / 22.0), 0.5)
+                lsCalcA = (cellsizedem / 22.0) ** 0.5
                 lsCalcB = 0.065 + (0.045 * Raster(DEMSlopeCut)) + (0.0065 * Power(Raster(DEMSlopeCut), 2.0))
 
                 # Calculate the LS-factor
