@@ -81,6 +81,10 @@ import LUCI_SEEA.tool_classes.c_MEDUSA as c_MEDUSA
 refresh_modules(c_MEDUSA)
 MEDUSA = c_MEDUSA.MEDUSA
 
+import LUCI_SEEA.tool_classes.c_SoilParam as c_SoilParam
+refresh_modules(c_SoilParam)
+SoilParam = c_SoilParam.SoilParam
+
 ##########################
 ### Toolbox definition ###
 ##########################
@@ -90,4 +94,4 @@ class Toolbox(object):
     def __init__(self):
         self.label = u'LUCI freely available'
         self.alias = u'LUCI'
-        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, RUSLEAccounts, RUSLEAccScen, LandAccounts, PAspeciesRichness, ChangeUserSettings, PreprocessDEM, StatsZonal, StatsExtent, MEDUSA]
+        self.tools = [CreateDataAggregationGrid, AggregateData, RUSLE, RUSLEAccounts, RUSLEAccScen, LandAccounts, PAspeciesRichness, ChangeUserSettings, PreprocessDEM, StatsZonal, StatsExtent, MEDUSA, SoilParam]

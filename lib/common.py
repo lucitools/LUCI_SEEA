@@ -841,3 +841,17 @@ def getInputValue(folder, paramName, runType=None):
         inputValue = None
  
     return inputValue
+
+def CheckField(checkfile, fieldname):
+
+    try:
+        List = arcpy.ListFields(checkfile, fieldname)
+        if len(List) == 1:
+            exist = 1
+        else:
+            exist = 0
+        return exist
+
+    except Exception:
+        log.error("Error occurred while checking if field " + fieldname + " exists in file " + checkfile)
+        raise
