@@ -18,11 +18,14 @@ def function(params):
         runSystemChecks = common.strToBool(pText[1])
         outputFolder = pText[2]
         inputShapefile = pText[3]
-        PTF = pText[4]
+        PTFChoice = common.strToBool(pText[4])
+        PTF = pText[5]
+        VGChoice = common.strToBool(pText[6])
+        VG = pText[7]
 
         # Rerun parameter may not present when tool run as part of a batch run tool. If it is not, set rerun to False.
         try:
-            rerun = common.strToBool(pText[5])
+            rerun = common.strToBool(pText[8])
         except IndexError:
             rerun = False
         except Exception:
@@ -62,8 +65,15 @@ def function(params):
             log.error('Invalid PTF option')
             sys.exit()
 
+        if VG == "Wosten et al. (1999)":
+            VGOption = "Wosten_1999"
+
+        else:
+            log.error('Invalid PTF option')
+            sys.exit()
+
         # Call soil parameterisation function
-        SoilParam.function(outputFolder, inputShapefile, PTFOption, rerun)
+        SoilParam.function(outputFolder, inputShapefile, PTFChoice, PTFOption, VGChoice, VGOption, rerun)
 
         log.info("Soil parameterisation operations completed successfully")
 

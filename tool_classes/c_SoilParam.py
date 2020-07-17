@@ -76,7 +76,17 @@ class SoilParam(object):
         param.datatype = u'Feature Class'
         params.append(param)
 
-        # 4 PTF_of_choice
+        # 4 Calculate_PTF
+        param = arcpy.Parameter()
+        param.name = u'Calculate_PTF'
+        param.displayName = u'Calculate soil moisture content using PTF?'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Boolean'
+        param.value = u'False'
+        params.append(param)
+
+        # 5 PTF_of_choice
         param = arcpy.Parameter()
         param.name = u'PTF_of_choice'
         param.displayName = u'PTF of choice'
@@ -87,7 +97,28 @@ class SoilParam(object):
         param.filter.list = [u'Nguyen et al. (2014)', u'Adhikary et al. (2008)', u'Rawls et al. (1982)', u'Saxton et al. (1986)']
         params.append(param)
 
-        # 5 Rerun_tool
+        # 6 Calculate_VG
+        param = arcpy.Parameter()
+        param.name = u'Calculate_VG'
+        param.displayName = u'Calculate soil moisture content using van Genuchten model?'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Boolean'
+        param.value = u'False'
+        params.append(param)
+
+        # 7 VG_of_choice
+        param = arcpy.Parameter()
+        param.name = u'VG_of_choice'
+        param.displayName = u'Estimate van Genuchten model parameters'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        param.value = u'Wosten et al. (1999)'
+        param.filter.list = [u'Wosten et al. (1999)']
+        params.append(param)
+
+        # 8 Rerun_tool
         param = arcpy.Parameter()
         param.name = u'Rerun_tool'
         param.displayName = u'Rerun tool (will continue previous run from the point where any errors occurred)'
