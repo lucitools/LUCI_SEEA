@@ -20,6 +20,7 @@ class SoilParam(object):
         def updateParameters(self):
             """Modify the values and properties of parameters before internal validation is performed.
             This method is called whenever a parameter has been changed."""
+
             return
     
         def updateMessages(self):
@@ -28,6 +29,27 @@ class SoilParam(object):
 
             import LUCI_SEEA.lib.input_validation as input_validation
             refresh_modules(input_validation)
+
+            # Populate converstion factor automatically when either OM or OC is chosen has been chosen
+            CarbParamNo = None
+            ConvFactorParamNo = None
+            for i in range(0, len(self.params)):
+                if self.params[i].name == 'Carbon_content':
+                    CarbParamNo = i
+                if self.params[i].name == 'Conversion_factor':
+                    ConvFactorParamNo = i
+
+            CarbPairs = [('Organic carbon', 1.724),
+                         ('Organic matter', 0.58)]
+
+            if CarbParamNo is not None and ConvFactorParamNo is not None:
+                # If this is the most recently changed param ...
+                if not self.params[CarbParamNo].hasBeenValidated:
+
+                    # Update the linking code with the correct value
+                    for CarbPair in CarbPairs:
+                        if self.params[CarbParamNo].valueAsText == CarbPair[0]:
+                            self.params[ConvFactorParamNo].value = CarbPair[1]
             
             input_validation.checkFilePaths(self)
     
@@ -83,7 +105,7 @@ class SoilParam(object):
         param.parameterType = 'Required'
         param.direction = 'Input'
         param.datatype = u'Boolean'
-        param.value = u'False'
+        param.value = u'True'
         params.append(param)
 
         # 5 PTF_of_choice
@@ -118,7 +140,28 @@ class SoilParam(object):
         param.filter.list = [u'Wosten et al. (1999)']
         params.append(param)
 
-        # 8 Rerun_tool
+        # 8 Carbon_content
+        param = arcpy.Parameter()
+        param.name = u'Carbon_content'
+        param.displayName = u'Carbon: Does your dataset contain organic carbon or organic matter?'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        param.value = u'Organic carbon'
+        param.filter.list = [u'Organic carbon', u'Organic matter']
+        params.append(param)
+
+        # 9 Conversion_factor
+        param = arcpy.Parameter()
+        param.name = u'Conversion_factor'
+        param.displayName = u'Carbon: enter a conversion factor'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Double'
+        param.value = u'1.724'
+        params.append(param)
+
+        # 10 Rerun_tool
         param = arcpy.Parameter()
         param.name = u'Rerun_tool'
         param.displayName = u'Rerun tool (will continue previous run from the point where any errors occurred)'

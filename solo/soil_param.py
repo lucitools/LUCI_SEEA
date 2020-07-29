@@ -18,19 +18,43 @@ refresh_modules([log, common])
 
 def checkInputFields(inputFields, inputShp):
 
+    log.info('Checking if all required input fields are present in ' + str(inputShp))
+
     # Checks if the input fields are present in the shapefile
-    for param in inputFields:
-        log.info("Now checking if field " + str(param) + " exists in the input shapefile")
+    for param in inputFields:        
+
+        fieldPresent = False
         
         if common.CheckField(inputShp, param):
-            log.info("Field found, continuing...")
+            fieldPresent = True
 
         else:
             log.error("Field " + str(param) + " not found in the input shapefile")
             log.error("Please ensure this field present in the input shapefile")
             sys.exit()
 
-def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, rerun=False):
+def checkCarbon(carbon, carbContent, record):
+    warningFlag = ''
+
+    if carbon > 100.0:
+
+        warningFlag = 'OC or OM over 100'
+
+        if carbContent == 'OC':
+            msg = 'Organic carbon '
+            field = 'OC'
+        elif carbContent == 'OM':
+            msg = 'Organic matter '
+            field = 'OM'
+
+        warningMsg1 = str(msg) + "content (percentage) is higher than 100 percent"
+        log.warning(warningMsg1)
+        warningMsg2 = "Please check the field " + str(field) + " in record " + str(record)
+        log.warning(warningMsg2)
+
+    return warningFlag
+
+def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, carbContent, carbonConFactor, rerun=False):
 
     try:
         # Set temporary variables
@@ -55,7 +79,14 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
             if PTFOption == "Nguyen_2014":
 
                 # Requirements: sand, silt, clay, OC, and BD
-                reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OC", "BD"]
+
+                if carbContent == 'OC':
+                    reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OC", "BD"]
+                    carbonConFactor = 1.0
+
+                elif carbContent == 'OM':
+                    reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OM", "BD"]
+
                 checkInputFields(reqFields, inputShp)
 
                 # Retrieve info from input
@@ -63,7 +94,7 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                 sandPerc = []
                 siltPerc = []
                 clayPerc = []
-                OCPerc = []
+                carbPerc = []
                 BDg_cm3 = []
 
                 with arcpy.da.SearchCursor(inputShp, reqFields) as searchCursor:
@@ -72,16 +103,17 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                         sand = row[1]
                         silt = row[2]
                         clay = row[3]
-                        OC = row[4]
+                        carbon = row[4]
                         BD = row[5]
 
                         record.append(objectID)
                         sandPerc.append(sand)
                         siltPerc.append(silt)
                         clayPerc.append(clay)
-                        OCPerc.append(OC)
+                        carbPerc.append(carbon)
                         BDg_cm3.append(BD)
 
+                warningArray = []
                 WC_1kPaArray = []
                 WC_3kPaArray = []
                 WC_6kPaArray = []
@@ -93,12 +125,16 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                 
                 for x in range(0, len(record)):
 
+                    # Data checks
+                    warningFlag = checkCarbon(carbPerc[x], carbContent, record[x])
+                    warningArray.append(warningFlag)
+
                     # Calculate water content using Nguyen et al. (2014)
-                    WC_1kPa = (0.002 * clayPerc[x]) + (0.055 * math.log(OCPerc[x], 10.0)) - (0.144 * BDg_cm3[x]) + 0.575
-                    WC_3kPa = (0.002 * clayPerc[x]) + (0.067 * math.log(OCPerc[x], 10.0)) - (0.125 * BDg_cm3[x]) + 0.527
-                    WC_6kPa = (0.001 * siltPerc[x]) + (0.003 * clayPerc[x]) + (0.12 * math.log(OCPerc[x], 10.0)) - (0.062 * BDg_cm3[x]) + 0.367
-                    WC_10kPa = (0.001 * siltPerc[x]) + (0.003 * clayPerc[x]) + (0.127 * math.log(OCPerc[x], 10.0)) + 0.228 
-                    WC_20kPa = (- 0.002 * sandPerc[x]) + (0.002 * clayPerc[x]) + (0.066 * math.log(OCPerc[x], 10.0)) - (0.058 * BDg_cm3[x]) + 0.415
+                    WC_1kPa = (0.002 * clayPerc[x]) + (0.055 * math.log((carbPerc[x] * float(carbonConFactor)), 10.0)) - (0.144 * BDg_cm3[x]) + 0.575
+                    WC_3kPa = (0.002 * clayPerc[x]) + (0.067 * math.log((carbPerc[x] * float(carbonConFactor)), 10.0)) - (0.125 * BDg_cm3[x]) + 0.527
+                    WC_6kPa = (0.001 * siltPerc[x]) + (0.003 * clayPerc[x]) + (0.12 * math.log((carbPerc[x] * float(carbonConFactor)), 10.0)) - (0.062 * BDg_cm3[x]) + 0.367
+                    WC_10kPa = (0.001 * siltPerc[x]) + (0.003 * clayPerc[x]) + (0.127 * math.log((carbPerc[x] * float(carbonConFactor)), 10.0)) + 0.228 
+                    WC_20kPa = (- 0.002 * sandPerc[x]) + (0.002 * clayPerc[x]) + (0.066 * math.log((carbPerc[x] * float(carbonConFactor)), 10.0)) - (0.058 * BDg_cm3[x]) + 0.415
                     WC_33kPa = (- 0.002 * sandPerc[x]) + (0.001 * clayPerc[x]) - (0.118 * BDg_cm3[x]) + 0.493
                     WC_100kPa = (- 0.003 * sandPerc[x]) - (0.107 * BDg_cm3[x]) + 0.497
                     WC_1500kPa = (- 0.002 * sandPerc[x]) + (0.002 * clayPerc[x]) - (0.032 * BDg_cm3[x]) + 0.234
@@ -115,6 +151,7 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                 # Write results back to the shapefile
 
                 # Add fields
+                arcpy.AddField_management(outputShp, "warning", "TEXT")
                 arcpy.AddField_management(outputShp, "WC_1kPa", "DOUBLE", 10, 6)
                 arcpy.AddField_management(outputShp, "WC_3kPa", "DOUBLE", 10, 6)
                 arcpy.AddField_management(outputShp, "WC_6kPa", "DOUBLE", 10, 6)
@@ -124,18 +161,19 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                 arcpy.AddField_management(outputShp, "WC_100kPa", "DOUBLE", 10, 6)
                 arcpy.AddField_management(outputShp, "WC_1500kPa", "DOUBLE", 10, 6)
 
-                outputFields = ["WC_1kPa", "WC_3kPa", "WC_6kPa", "WC_10kPa", "WC_20kPa", "WC_33kPa", "WC_100kPa", "WC_1500kPa"]
+                outputFields = ["warning", "WC_1kPa", "WC_3kPa", "WC_6kPa", "WC_10kPa", "WC_20kPa", "WC_33kPa", "WC_100kPa", "WC_1500kPa"]
                 recordNum = 0
                 with arcpy.da.UpdateCursor(outputShp, outputFields) as cursor:
                     for row in cursor:
-                        row[0] = WC_1kPaArray[recordNum]
-                        row[1] = WC_3kPaArray[recordNum]
-                        row[2] = WC_6kPaArray[recordNum]
-                        row[3] = WC_10kPaArray[recordNum]
-                        row[4] = WC_20kPaArray[recordNum]
-                        row[5] = WC_33kPaArray[recordNum]
-                        row[6] = WC_100kPaArray[recordNum]
-                        row[7] = WC_1500kPaArray[recordNum]
+                        row[0] = warningArray[recordNum]
+                        row[1] = WC_1kPaArray[recordNum]
+                        row[2] = WC_3kPaArray[recordNum]
+                        row[3] = WC_6kPaArray[recordNum]
+                        row[4] = WC_10kPaArray[recordNum]
+                        row[5] = WC_20kPaArray[recordNum]
+                        row[6] = WC_33kPaArray[recordNum]
+                        row[7] = WC_100kPaArray[recordNum]
+                        row[8] = WC_1500kPaArray[recordNum]
 
                         cursor.updateRow(row)
                         recordNum += 1
@@ -193,15 +231,6 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                     WC_1000kPaArray.append(WC_1000kPa)
                     WC_1500kPaArray.append(WC_1500kPa)
 
-                    log.info("Record: " + str(record[x]))
-                    log.info("WC_10kPa: " + str(WC_10kPa))
-                    log.info("WC_33kPa: " + str(WC_33kPa))
-                    log.info("WC_100kPa: " + str(WC_100kPa))
-                    log.info("WC_300kPa: " + str(WC_300kPa))
-                    log.info("WC_500kPa: " + str(WC_500kPa))
-                    log.info("WC_1000kPa: " + str(WC_1000kPa))
-                    log.info("WC_1500kPa: " + str(WC_1500kPa))
-
                 # Write results back to the shapefile
 
                 # Add fields
@@ -232,8 +261,14 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
 
             elif PTFOption == "Rawls_1982":
 
-                # Requirements: sand, silt, clay, OC, and BD
-                reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OC", "BD"]
+                # Requirements: sand, silt, clay, OM, and BD
+                if carbContent == 'OC':
+                    reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OC", "BD"]                    
+
+                elif carbContent == 'OM':
+                    reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OM", "BD"]
+                    carbonConFactor = 1.0
+                
                 checkInputFields(reqFields, inputShp)
 
                 # Retrieve info from input
@@ -241,7 +276,7 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                 sandPerc = []
                 siltPerc = []
                 clayPerc = []
-                OCPerc = []
+                carbPerc = []
                 BDg_cm3 = []
 
                 with arcpy.da.SearchCursor(inputShp, reqFields) as searchCursor:
@@ -250,14 +285,14 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                         sand = row[1]
                         silt = row[2]
                         clay = row[3]
-                        OC = row[4]
+                        carbon = row[4]
                         BD = row[5]
 
                         record.append(objectID)
                         sandPerc.append(sand)
                         siltPerc.append(silt)
                         clayPerc.append(clay)
-                        OCPerc.append(OC)
+                        carbPerc.append(carbon)
                         BDg_cm3.append(BD)
 
                 WC_4kPaArray = []
@@ -276,19 +311,18 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                 for x in range(0, len(record)):
 
                     # Calculate water content using Rawls et al. (1982) cm3cm-3
-                    # (OM = 1.724 * OC, van bemmelen factor)
-                    WC_4kPa = 0.7899 - (0.0037 * sandPerc[x]) + (0.01 * 1.724 * OCPerc[x]) - (0.1315 * BDg_cm3[x])
+                    WC_4kPa = 0.7899 - (0.0037 * sandPerc[x]) + (0.01 * (carbPerc[x] * float(carbonConFactor))) - (0.1315 * BDg_cm3[x])
                     WC_7kPa = 0.7135 - (0.003 * sandPerc[x]) + (0.0017 * clayPerc[x]) - (0.1693 * BDg_cm3[x])
-                    WC_10kPa = 0.4188 - (0.0030 * sandPerc[x]) + (0.0023 * clayPerc[x]) + (0.0317 * 1.724 * OCPerc[x])
-                    WC_20kPa = 0.3121 - (0.0024 * sandPerc[x]) + (0.0032 * clayPerc[x]) + (0.0314 * 1.724 * OCPerc[x])
-                    WC_33kPa = 0.2576 - (0.002 * sandPerc[x]) + (0.0036 * clayPerc[x]) + (0.0299 * 1.724 * OCPerc[x])
-                    WC_60kPa = 0.2065 - (0.0016 * sandPerc[x]) + (0.0040 * clayPerc[x]) + (0.0275 * 1.724 * OCPerc[x])
-                    WC_100kPa = 0.0349 + (0.0014 * siltPerc[x]) + (0.0055 * clayPerc[x]) + (0.0251 * 1.724 * OCPerc[x])
-                    WC_200kPa = 0.0281 + (0.0011 * siltPerc[x]) + (0.0054 * clayPerc[x]) + (0.0220 * 1.724 * OCPerc[x])
-                    WC_400kPa = 0.0238 + (0.0008 * siltPerc[x]) + (0.0052 * clayPerc[x]) + (0.0190 * 1.724 * OCPerc[x])   
-                    WC_700kPa = 0.0216 + (0.0006 * siltPerc[x]) + (0.0050 * clayPerc[x]) + (0.0167 * 1.724 * OCPerc[x])
-                    WC_1000kPa = 0.0205 + (0.0005 * siltPerc[x]) + (0.0049 * clayPerc[x]) + (0.0154 * 1.724 * OCPerc[x])
-                    WC_1500kPa = 0.026 + (0.005 * clayPerc[x]) + (0.0158 * 1.724 * OCPerc[x])
+                    WC_10kPa = 0.4188 - (0.0030 * sandPerc[x]) + (0.0023 * clayPerc[x]) + (0.0317 * (carbPerc[x] * float(carbonConFactor)))
+                    WC_20kPa = 0.3121 - (0.0024 * sandPerc[x]) + (0.0032 * clayPerc[x]) + (0.0314 * (carbPerc[x] * float(carbonConFactor)))
+                    WC_33kPa = 0.2576 - (0.002 * sandPerc[x]) + (0.0036 * clayPerc[x]) + (0.0299 * (carbPerc[x] * float(carbonConFactor)))
+                    WC_60kPa = 0.2065 - (0.0016 * sandPerc[x]) + (0.0040 * clayPerc[x]) + (0.0275 * (carbPerc[x] * float(carbonConFactor)))
+                    WC_100kPa = 0.0349 + (0.0014 * siltPerc[x]) + (0.0055 * clayPerc[x]) + (0.0251 * (carbPerc[x] * float(carbonConFactor)))
+                    WC_200kPa = 0.0281 + (0.0011 * siltPerc[x]) + (0.0054 * clayPerc[x]) + (0.0220 * (carbPerc[x] * float(carbonConFactor)))
+                    WC_400kPa = 0.0238 + (0.0008 * siltPerc[x]) + (0.0052 * clayPerc[x]) + (0.0190 * (carbPerc[x] * float(carbonConFactor)))
+                    WC_700kPa = 0.0216 + (0.0006 * siltPerc[x]) + (0.0050 * clayPerc[x]) + (0.0167 * (carbPerc[x] * float(carbonConFactor)))
+                    WC_1000kPa = 0.0205 + (0.0005 * siltPerc[x]) + (0.0049 * clayPerc[x]) + (0.0154 * (carbPerc[x] * float(carbonConFactor)))
+                    WC_1500kPa = 0.026 + (0.005 * clayPerc[x]) + (0.0158 * (carbPerc[x] * float(carbonConFactor)))
 
                     log.info("Record: " + str(record[x]))
                     log.info("WC_4kPa: " + str(WC_4kPa))
@@ -455,8 +489,15 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
             if VGOption == "Wosten_1999":
                 log.info("Calculating van Genuchten parameters using Wosten et al. (1999)")
 
-                # Requirements: sand, silt, clay, OC, and BD
-                reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OC", "BD"]
+                # Requirements: sand, silt, clay, OM, and BD
+
+                if carbContent == 'OC':
+                    reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OC", "BD"]                    
+
+                elif carbContent == 'OM':
+                    reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OM", "BD"]
+                    carbonConFactor = 1.0
+
                 checkInputFields(reqFields, inputShp)
 
                 # Retrieve info from input
@@ -464,7 +505,7 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                 sandPerc = []
                 siltPerc = []
                 clayPerc = []
-                OCPerc = []
+                carbPerc = []
                 BDg_cm3 = []
 
                 with arcpy.da.SearchCursor(inputShp, reqFields) as searchCursor:
@@ -473,14 +514,14 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                         sand = row[1]
                         silt = row[2]
                         clay = row[3]
-                        OC = row[4]
+                        carbon = row[4]
                         BD = row[5]
 
                         record.append(objectID)
                         sandPerc.append(sand)
                         siltPerc.append(silt)
                         clayPerc.append(clay)
-                        OCPerc.append(OC)
+                        carbPerc.append(carbon)
                         BDg_cm3.append(BD)
 
                 WC_1kPaArray = []
@@ -491,24 +532,41 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                 WC_1000kPaArray = []
                 WC_1500kPaArray = []
 
+                WC_satArray = []
+                WC_residualArray = []
+                alpha_VGArray = []
+                n_VGArray = []
+                m_VGArray = []
+
                 for x in range(0, len(record)):
+
+                    log.info('carbonConFactor: ' + str(carbonConFactor))
                     
                     if clayPerc[x] < 18.0 and sandPerc[x] > 65.0:
                         WC_residual = 0.025
                     else:
                         WC_residual = 0.01
 
-                    WC_sat = 0.7919 + (0.001691 * clayPerc[x]) - (0.29619 * BDg_cm3[x]) - (0.000001491 * siltPerc[x]**2) + (0.0000821 * (1.724 * OCPerc[x])**2) + (0.02427 * clayPerc[x] **(-1.0) + (0.01113 * siltPerc[x]**(-1.0)) +  (0.01472 * math.log(siltPerc[x])) - 0.0000733 *(1.724 * OCPerc[x]) * clayPerc[x]) - (0.000619 * BDg_cm3[x] * clayPerc[x]) - (0.001183 * BDg_cm3[x] *1.724 * OCPerc[x]) - (0.0001664 * 1.0 * siltPerc[x])
-                    
-                    alpha_VG = math.exp(- 14.96 + (0.03135 * clayPerc[x]) + (0.0351 * siltPerc[x]) + (0.646 * 1.724 * OCPerc[x]) + (15.29 * BDg_cm3[x]) - (0.192 * 1.0) - (4.671 * BDg_cm3[x] ** 2.0) - (0.000781 * clayPerc[x]) - (0.00687 * 1.724 * OCPerc[x] ** 2.0) + (0.0449 * (1.724 * OCPerc[x])**(-1.0)) + (0.0663 * math.log(siltPerc[x])) + (0.1482 * math.log(1.724 * OCPerc[x])) - (0.04546 * BDg_cm3[x] * siltPerc[x]) - (0.4852 * BDg_cm3[x] * 1.724 * OCPerc[x]) + (0.00673 * 1.0 * clayPerc[x]))
+                    WC_sat = 0.7919 + (0.001691 * clayPerc[x]) - (0.29619 * BDg_cm3[x]) - (0.000001491 * siltPerc[x]**2) + (0.0000821 * ((carbPerc[x] * float(carbonConFactor)))**2) + (0.02427 * clayPerc[x] **(-1.0) + (0.01113 * siltPerc[x]**(-1.0)) +  (0.01472 * math.log(siltPerc[x])) - 0.0000733 * ((carbPerc[x] * float(carbonConFactor))) * clayPerc[x]) - (0.000619 * BDg_cm3[x] * clayPerc[x]) - (0.001183 * BDg_cm3[x] * (carbPerc[x] * float(carbonConFactor))) - (0.0001664 * 1.0 * siltPerc[x])
 
-                    n_VG = math.exp(-25.23 - (0.02195 * clayPerc[x]) + (0.0074 * siltPerc[x]) - (0.1940 * 1.724 * OCPerc[x]) + (45.5 * BDg_cm3[x]) - (7.24 * BDg_cm3[x] ** 2.0) +  (0.0003658 * clayPerc[x] **2.0) + (0.002885 * (1.724*OCPerc[x])**2.0) - (12.81 * (BDg_cm3[x])**(-1.0)) - (0.1524 * (siltPerc[x])**(-1.0)) - (0.01958 * (1.724 * OCPerc[x])** (-1.0)) - (0.2876 * math.log(siltPerc[x])) - (0.0709 * math.log(1.724*OCPerc[x])) - (44.6 * math.log(BDg_cm3[x])) - (0.02264 * BDg_cm3[x] * clayPerc[x]) + (0.0896 * BDg_cm3[x] * OCPerc[x]) + (0.00718 * 1.0 * clayPerc[x])) + 1
+                    alpha_VG = math.exp(- 14.96 + (0.03135 * clayPerc[x]) + (0.0351 * siltPerc[x]) + (0.646 * (carbPerc[x] * float(carbonConFactor))) + (15.29 * BDg_cm3[x]) - (0.192 * 1.0) - (4.671 * BDg_cm3[x] ** 2.0) - (0.000781 * clayPerc[x]) - (0.00687 * (carbPerc[x] * float(carbonConFactor)) ** 2.0) + (0.0449 * ((carbPerc[x] * float(carbonConFactor)))**(-1.0)) + (0.0663 * math.log(siltPerc[x])) + (0.1482 * math.log((carbPerc[x] * float(carbonConFactor)))) - (0.04546 * BDg_cm3[x] * siltPerc[x]) - (0.4852 * BDg_cm3[x] * (carbPerc[x] * float(carbonConFactor))) + (0.00673 * 1.0 * clayPerc[x]))
 
-                    m_VG = 1 - (1 / float(n_VG))
+                    n_VG = math.exp(-25.23 - (0.02195 * clayPerc[x]) + (0.0074 * siltPerc[x]) - (0.1940 * (carbPerc[x] * float(carbonConFactor))) + (45.5 * BDg_cm3[x]) - (7.24 * BDg_cm3[x] ** 2.0) +  (0.0003658 * clayPerc[x] **2.0) + (0.002885 * ((carbPerc[x] * float(carbonConFactor)))**2.0) - (12.81 * (BDg_cm3[x])**(-1.0)) - (0.1524 * (siltPerc[x])**(-1.0)) - (0.01958 * ((carbPerc[x] * float(carbonConFactor)))** (-1.0)) - (0.2876 * math.log(siltPerc[x])) - (0.0709 * math.log((carbPerc[x] * float(carbonConFactor)))) - (44.6 * math.log(BDg_cm3[x])) - (0.02264 * BDg_cm3[x] * clayPerc[x]) + (0.0896 * BDg_cm3[x] * (carbPerc[x] * float(carbonConFactor))) + (0.00718 * 1.0 * clayPerc[x])) + 1
 
-                    log.info("alpha_VG: " + str(alpha_VG))
-                    log.info("n_VG: " + str(n_VG))
-                    log.info("m_VG: " + str(m_VG))
+                    m_VG = 1.0 - (1.0 / float(n_VG))
+
+                    log.info('record[x]: ' + str(record[x]))
+                    log.info('WC_residual: ' + str(WC_residual))
+                    log.info('WC_sat: ' + str(WC_sat))
+                    log.info('alpha_VG: ' + str(alpha_VG))
+                    log.info('n_VG: ' + str(n_VG))
+                    log.info('m_VG: ' + str(m_VG))
+
+                    WC_satArray.append(WC_sat)
+                    WC_residualArray.append(WC_residual)
+                    alpha_VGArray.append(alpha_VG)
+                    n_VGArray.append(n_VG)
+                    m_VGArray.append(m_VG)
 
                     WC_1kPa = WC_residual + ((WC_sat - WC_residual) / ((1.0 + ((alpha_VG * 10.0) ** n_VG))) ** m_VG)
                     WC_10kPa = WC_residual + ((WC_sat - WC_residual) / ((1.0 + ((alpha_VG * 100.0) ** n_VG))) ** m_VG)
@@ -525,6 +583,50 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, r
                     WC_200kPaArray.append(WC_200kPa)
                     WC_1000kPaArray.append(WC_1000kPa)
                     WC_1500kPaArray.append(WC_1500kPa)
+
+                    import matplotlib.pyplot as plt
+                    import numpy as np
+
+                    yPlot = np.linspace(1.0, 1000000.0, 1000000)
+                    xPlot = np.array(WC_residual + ((WC_sat - WC_residual) / ((1.0 + ((alpha_VG * yPlot * 10.0) ** n_VG))) ** m_VG))
+                    
+                    titlePlot = 'VG curve for record: ' + str(x)
+                    outName = 'plot_' + str(x) + '.png'
+                    outPath = os.path.join(outputFolder, outName)
+
+                    plt.plot(xPlot, yPlot, label='VG Curve')
+                    plt.yscale('log')
+                    plt.title(titlePlot)
+                    plt.ylabel('kPa')
+                    plt.xlabel('Water content')
+                    plt.legend(titlePlot)
+                    plt.savefig(outPath)
+                    plt.close()
+
+                    log.info('Plot made')
+                    log.info('Path: ' + str(outPath))
+
+                # Create plot
+                import matplotlib.pyplot as plt
+                import numpy as np
+
+                outPath = os.path.join(outputFolder, 'plotVG.png')
+                title = 'Van Genuchten plots of ' + str(len(record)) + ' records'
+
+                y = np.linspace(1.0, 1000000.0, 1000000)
+                labels = []
+                for i in range(0, len(record)):
+                    x = WC_residualArray[i] + ((WC_satArray[i] - WC_residualArray[i]) / ((1.0 + ((alpha_VGArray[i] * y * 10.0) ** n_VGArray[i]))) ** m_VGArray[i])
+                    plt.plot(x, y)
+                
+                plt.yscale('log')
+                plt.title(title)
+                plt.xlabel('Water content')
+                plt.ylabel('kPa')
+                plt.savefig(outPath, transparent=False)
+                plt.close()
+                log.info('Plot created')
+
 
                 # Write results back to the shapefile
                 # Add fields

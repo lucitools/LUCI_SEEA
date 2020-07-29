@@ -22,10 +22,12 @@ def function(params):
         PTF = pText[5]
         VGChoice = common.strToBool(pText[6])
         VG = pText[7]
+        carbonContent = pText[8]
+        carbonConFactor = pText[9]
 
         # Rerun parameter may not present when tool run as part of a batch run tool. If it is not, set rerun to False.
         try:
-            rerun = common.strToBool(pText[8])
+            rerun = common.strToBool(pText[10])
         except IndexError:
             rerun = False
         except Exception:
@@ -47,6 +49,22 @@ def function(params):
 
         # Write input params to XML
         common.writeParamsToXML(params, outputFolder)
+
+        if PTFChoice == True and VGChoice == False:
+            log.info('Soil water content will be calculated using a PTF')
+
+        elif PTFChoice == False and VGChoice == True:
+            log.info('Soil water content will be calculated using the van Genuchten model')
+
+        elif PTFChoice == False and VGChoice == False:
+            log.error('Method for soil water content not chosen')
+            log.error('Please tick box to choose either PTF method or van Genuchten method')
+            sys.exit()
+
+        elif PTFChoice == True and VGChoice == True:
+            log.error('Both PTF and van Genuchten methods chosen')
+            log.error('Please only pick one or the other')
+            sys.exit()
 
         # Set option of PTF
         if PTF == 'Nguyen et al. (2014)':
@@ -72,8 +90,19 @@ def function(params):
             log.error('Invalid PTF option')
             sys.exit()
 
+        # Set carbon content choice
+        if carbonContent == 'Organic carbon':
+            carbContent = 'OC'
+
+        elif carbonContent == 'Organic matter':
+            carbContent = 'OM'
+
+        else:
+            log.error('Invalid carbon content option')
+            sys.exit()
+
         # Call soil parameterisation function
-        SoilParam.function(outputFolder, inputShapefile, PTFChoice, PTFOption, VGChoice, VGOption, rerun)
+        SoilParam.function(outputFolder, inputShapefile, PTFChoice, PTFOption, VGChoice, VGOption, carbContent, carbonConFactor, rerun)
 
         log.info("Soil parameterisation operations completed successfully")
 
