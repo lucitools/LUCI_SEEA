@@ -539,8 +539,6 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, c
                 m_VGArray = []
 
                 for x in range(0, len(record)):
-
-                    log.info('carbonConFactor: ' + str(carbonConFactor))
                     
                     if clayPerc[x] < 18.0 and sandPerc[x] > 65.0:
                         WC_residual = 0.025
@@ -554,13 +552,6 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, c
                     n_VG = math.exp(-25.23 - (0.02195 * clayPerc[x]) + (0.0074 * siltPerc[x]) - (0.1940 * (carbPerc[x] * float(carbonConFactor))) + (45.5 * BDg_cm3[x]) - (7.24 * BDg_cm3[x] ** 2.0) +  (0.0003658 * clayPerc[x] **2.0) + (0.002885 * ((carbPerc[x] * float(carbonConFactor)))**2.0) - (12.81 * (BDg_cm3[x])**(-1.0)) - (0.1524 * (siltPerc[x])**(-1.0)) - (0.01958 * ((carbPerc[x] * float(carbonConFactor)))** (-1.0)) - (0.2876 * math.log(siltPerc[x])) - (0.0709 * math.log((carbPerc[x] * float(carbonConFactor)))) - (44.6 * math.log(BDg_cm3[x])) - (0.02264 * BDg_cm3[x] * clayPerc[x]) + (0.0896 * BDg_cm3[x] * (carbPerc[x] * float(carbonConFactor))) + (0.00718 * 1.0 * clayPerc[x])) + 1
 
                     m_VG = 1.0 - (1.0 / float(n_VG))
-
-                    log.info('record[x]: ' + str(record[x]))
-                    log.info('WC_residual: ' + str(WC_residual))
-                    log.info('WC_sat: ' + str(WC_sat))
-                    log.info('alpha_VG: ' + str(alpha_VG))
-                    log.info('n_VG: ' + str(n_VG))
-                    log.info('m_VG: ' + str(m_VG))
 
                     WC_satArray.append(WC_sat)
                     WC_residualArray.append(WC_residual)
@@ -584,6 +575,8 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, c
                     WC_1000kPaArray.append(WC_1000kPa)
                     WC_1500kPaArray.append(WC_1500kPa)
 
+                    '''
+                    # Creating individual plots
                     import matplotlib.pyplot as plt
                     import numpy as np
 
@@ -605,6 +598,7 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, c
 
                     log.info('Plot made')
                     log.info('Path: ' + str(outPath))
+                    '''
 
                 # Create plot
                 import matplotlib.pyplot as plt
@@ -613,12 +607,15 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, c
                 outPath = os.path.join(outputFolder, 'plotVG.png')
                 title = 'Van Genuchten plots of ' + str(len(record)) + ' records'
 
-                y = np.linspace(1.0, 1000000.0, 1000000)
+                y = np.linspace(1.0, 100000.0, 100000)
                 labels = []
                 for i in range(0, len(record)):
                     x = WC_residualArray[i] + ((WC_satArray[i] - WC_residualArray[i]) / ((1.0 + ((alpha_VGArray[i] * y * 10.0) ** n_VGArray[i]))) ** m_VGArray[i])
                     plt.plot(x, y)
                 
+                plt.axhline(y=33.0)
+                plt.axhline(y=0.0)
+                plt.axhline(y=1500.0)
                 plt.yscale('log')
                 plt.title(title)
                 plt.xlabel('Water content')
@@ -626,6 +623,44 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, c
                 plt.savefig(outPath, transparent=False)
                 plt.close()
                 log.info('Plot created')
+
+                outPath = os.path.join(outputFolder, 'plotVG_WC_yaxis.png')
+                title = 'Van Genuchten plots of ' + str(len(record)) + ' records (water content on y-axis)'
+
+                x = np.linspace(1.0, 2000.0, 10000)
+                labels = []
+                for i in range(0, len(record)):
+                    y = WC_residualArray[i] + ((WC_satArray[i] - WC_residualArray[i]) / ((1.0 + ((alpha_VGArray[i] * x * 10.0) ** n_VGArray[i]))) ** m_VGArray[i])
+                    plt.plot(x, y)
+                
+                plt.axvline(x=33.0)
+                plt.axvline(x=0.0)
+                plt.axvline(x=1500.0)
+                plt.xscale('log')
+                plt.title(title)
+                plt.ylabel('Water content')
+                plt.xlabel('kPa')
+                plt.savefig(outPath, transparent=False)
+                plt.close()
+                log.info('Plot created with water content on the y-axis')
+
+                outPath = os.path.join(outputFolder, 'plotVG_200kPa.png')
+                title = 'Van Genuchten plots of ' + str(len(record)) + ' records (water content on y-axis)'
+
+                x = np.linspace(1.0, 300.0, 600)
+                labels = []
+                for i in range(0, len(record)):
+                    y = WC_residualArray[i] + ((WC_satArray[i] - WC_residualArray[i]) / ((1.0 + ((alpha_VGArray[i] * x * 10.0) ** n_VGArray[i]))) ** m_VGArray[i])
+                    plt.plot(x, y)
+                
+                plt.axvline(x=33.0)
+                plt.axvline(x=0.0)
+                plt.title(title)
+                plt.ylabel('Water content')
+                plt.xlabel('kPa')
+                plt.savefig(outPath, transparent=False)
+                plt.close()
+                log.info('Plot created with lines for important thresholds')
 
 
                 # Write results back to the shapefile
