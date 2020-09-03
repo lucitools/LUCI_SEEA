@@ -116,7 +116,10 @@ class SoilParam(object):
         param.direction = 'Input'
         param.datatype = u'String'
         param.value = u'Nguyen et al. (2014)'
-        param.filter.list = [u'Nguyen et al. (2014)', u'Adhikary et al. (2008)', u'Rawls et al. (1982)', u'Saxton et al. (1986)']
+        param.filter.list = [u'Nguyen et al. (2014)', u'Adhikary et al. (2008)',
+                             u'Rawls et al. (1982)', u'Saxton et al. (1986)',
+                             u'Hall et al. (1977)', u'Gupta and Larson (1979)',
+                             u'Batjes (1996)', u'Saxton and Rawls (2006)']
         params.append(param)
 
         # 6 Calculate_VG

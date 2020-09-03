@@ -79,6 +79,19 @@ def function(params):
         elif PTF == 'Saxton et al. (1986)':
             PTFOption = 'Saxton_1986'
 
+        elif PTF == 'Hall et al. (1977)':
+            PTFOption = 'Hall_1977'
+
+        elif PTF == 'Gupta and Larson (1979)':
+            PTFOption = 'GuptaLarson_1979'
+
+        elif PTF == 'Batjes (1996)':
+            PTFOption = 'Batjes_1996'
+
+
+        elif PTF == 'Saxton and Rawls (2006)':
+            PTFOption = 'SaxtonRawls_2006'
+
         else:
             log.error('Invalid PTF option')
             sys.exit()
