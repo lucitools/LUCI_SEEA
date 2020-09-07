@@ -88,9 +88,44 @@ def function(params):
         elif PTF == 'Batjes (1996)':
             PTFOption = 'Batjes_1996'
 
-
         elif PTF == 'Saxton and Rawls (2006)':
             PTFOption = 'SaxtonRawls_2006'
+
+        elif PTF == 'Pidgeon (1972)':
+            PTFOption = 'Pidgeon_1972'
+
+        elif PTF == 'Lal (1978)':
+            PTFOption = 'Lal_1978'
+
+        elif PTF == 'Aina and Periaswamy (1985)':
+            PTFOption = 'AinaPeriaswamy_1985'
+
+        elif PTF == 'Manrique and Jones (1991)':
+            PTFOption = 'ManriqueJones_1991'
+
+        elif PTF == 'van Den Berg et al. (1997)':
+            PTFOption = 'vanDenBerg_1997'
+
+        elif PTF == 'Tomasella and Hodnett (1998)':
+            PTFOption = 'TomasellaHodnett_1998'
+
+        elif PTF == 'Reichert et al. (2009) - Sand, silt, clay, OM, BD':
+            PTFOption = 'Reichert_2009_OM'
+
+        elif PTF == 'Reichert et al. (2009) - Sand, silt, clay, BD':
+            PTFOption = 'Reichert_2009'
+
+        elif PTF == 'Botula Manyala (2013)':
+            PTFOption = 'Botula_2013'
+
+        elif PTF == 'Shwetha and Varija (2013)':
+            PTFOption = 'ShwethaVarija_2013'
+
+        elif PTF == 'Dashtaki et al. (2010)':
+            PTFOption = 'Dashtaki_2010'
+
+        elif PTF == 'Santra et al. (2018)':
+            PTFOption = 'Santra_2018'
 
         else:
             log.error('Invalid PTF option')
@@ -98,6 +133,18 @@ def function(params):
 
         if VG == "Wosten et al. (1999)":
             VGOption = "Wosten_1999"
+
+        elif VG == "Vereecken et al. (1989)":
+            VGOption = "Vereecken_1989"
+
+        elif VG == "Zacharias and Wessolek (2007)":
+            VGOption = "ZachariasWessolek_2007"
+
+        elif VG == "Weynants et al. (2009)":
+            VGOption = "Weynants_2009"
+
+        elif VG == "Dashtaki et al. (2010)":
+            VGOption = 'Dashtaki_2010'
 
         else:
             log.error('Invalid PTF option')

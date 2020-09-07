@@ -119,7 +119,13 @@ class SoilParam(object):
         param.filter.list = [u'Nguyen et al. (2014)', u'Adhikary et al. (2008)',
                              u'Rawls et al. (1982)', u'Saxton et al. (1986)',
                              u'Hall et al. (1977)', u'Gupta and Larson (1979)',
-                             u'Batjes (1996)', u'Saxton and Rawls (2006)']
+                             u'Batjes (1996)', u'Saxton and Rawls (2006)',
+                             u'Pidgeon (1972)', u'Lal (1978)', u'Aina and Periaswamy (1985)',
+                             u'Manrique and Jones (1991)', u'van Den Berg et al. (1997)',
+                             u'Tomasella and Hodnett (1998)', u'Reichert et al. (2009) - Sand, silt, clay, OM, BD',
+                             u'Reichert et al. (2009) - Sand, silt, clay, BD', u'Botula Manyala (2013)',
+                             u'Shwetha and Varija (2013)', u'Dashtaki et al. (2010)',
+                             u'Santra et al. (2018)']
         params.append(param)
 
         # 6 Calculate_VG
@@ -140,7 +146,9 @@ class SoilParam(object):
         param.direction = 'Input'
         param.datatype = u'String'
         param.value = u'Wosten et al. (1999)'
-        param.filter.list = [u'Wosten et al. (1999)']
+        param.filter.list = [u'Wosten et al. (1999)', u'Vereecken et al. (1989)',
+                             u'Zacharias and Wessolek (2007)', u'Weynants et al. (2009)',
+                             u'Dashtaki et al. (2010)']
         params.append(param)
 
         # 8 Carbon_content
