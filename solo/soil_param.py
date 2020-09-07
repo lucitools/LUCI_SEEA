@@ -2282,6 +2282,119 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
 
                 log.info("Results written to the output shapefile inside the output folder")
 
+            elif VGOption == "HodnettTomasella_2002":
+
+                log.info("Calculating van Genuchten parameters using Hodnett and Tomasella (2002)")
+
+                # Requirements: Sand, Silt, Clay, OC, BD, CEC,  pH
+                if carbContent == 'OC':
+                    reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OC", "BD", "CEC", "pH"]                    
+                    carbonConFactor = 1.0
+
+                elif carbContent == 'OM':
+                    reqFields = ["OBJECTID", "Sand", "Silt", "Clay", "OC", "BD", "CEC", "pH"]
+                    
+                checkInputFields(reqFields, inputShp)
+
+                # Retrieve info from input
+                record = []
+                sandPerc = []
+                siltPerc = []
+                clayPerc = []
+                carbPerc = []
+                BDg_cm3 = []
+                CECcmol_kg = []
+                pH = []
+
+                with arcpy.da.SearchCursor(inputShp, reqFields) as searchCursor:
+                    for row in searchCursor:
+                        objectID = row[0]
+                        sand = row[1]
+                        silt = row[2]
+                        clay = row[3]  
+                        carbon = row[4]                      
+                        BD = row[5]
+                        CEC = row[6]
+                        pHValue = row[7]
+
+                        record.append(objectID)
+                        sandPerc.append(sand)
+                        siltPerc.append(silt)
+                        clayPerc.append(clay)
+                        carbPerc.append(carbon)
+                        BDg_cm3.append(BD)
+                        CECcmol_kg.append(CEC)
+                        pH.append(pHValue)
+
+                WC_1kPaArray = []
+                WC_3kPaArray = []
+                WC_10kPaArray = []
+                WC_33kPaArray = []
+                WC_100kPaArray = []
+                WC_1500kPaArray = []
+
+                WC_satArray = []
+                WC_residualArray = []
+                alpha_VGArray = []
+                n_VGArray = []
+                m_VGArray = []
+
+                for x in range(0, len(record)):
+
+                    WC_sat = 0.81799 + (9.9 * 10**(-4) * clayPerc[x]) - (0.3142 * BDg_cm3[x]) + (1.8 * 10**(-4) * CECcmol_kg[x]) + (0.00451 * pH[x]) - (5 * 10**(-6) * sandPerc[x] * clayPerc[x])
+                    WC_residual = 0.22733 - (0.00164 * sandPerc[x]) + (0.00235 * CECcmol_kg[x]) - (0.00831 * pH[x]) + (1.8 * 10**(-5) * clayPerc[x]**2) + (2.6 * 10**(-5) * sandPerc[x] * clayPerc[x])
+                    alpha_VG = math.exp(- 0.02294 - (0.03526 * siltPerc[x]) + (0.024 * carbPerc[x]*float(carbonConFactor)) - (0.00076 * CECcmol_kg[x]) - (0.11331 * pH[x]) + (0.00019 * siltPerc[x]**2))                    
+                    n_VG = math.exp(0.62986 - (0.00833 * clayPerc[x]) - (0.00529 * carbPerc[x]*float(carbonConFactor)) + (0.00593 * pH[x]) + (7 * 10**(-5) * clayPerc[x]**2) - (1.4 * 10**(-4) * sandPerc[x] * siltPerc[x]))
+                    m_VG = 1.0 - (1.0 / float(n_VG))
+
+                    WC_satArray.append(WC_sat)
+                    WC_residualArray.append(WC_residual)
+                    alpha_VGArray.append(alpha_VG)
+                    n_VGArray.append(n_VG)
+                    m_VGArray.append(m_VG)
+
+                    WC_1kPa = WC_residual + ((WC_sat - WC_residual) / ((1.0 + ((alpha_VG * 10.0) ** n_VG))) ** m_VG)
+                    WC_3kPa = WC_residual + ((WC_sat - WC_residual) / ((1.0 + ((alpha_VG * 30.0) ** n_VG))) ** m_VG)
+                    WC_10kPa = WC_residual + ((WC_sat - WC_residual) / ((1.0 + ((alpha_VG * 100.0) ** n_VG))) ** m_VG)
+                    WC_33kPa = WC_residual + ((WC_sat - WC_residual) / ((1.0 + ((alpha_VG * 330.0) ** n_VG))) ** m_VG)
+                    WC_100kPa = WC_residual + ((WC_sat - WC_residual) / ((1.0 + ((alpha_VG * 1000.0) ** n_VG))) ** m_VG)
+                    WC_1500kPa = WC_residual + ((WC_sat - WC_residual) / ((1.0 + ((alpha_VG * 15000.0) ** n_VG))) ** m_VG)
+
+                    WC_1kPaArray.append(WC_1kPa)
+                    WC_3kPaArray.append(WC_3kPa)
+                    WC_10kPaArray.append(WC_10kPa)
+                    WC_33kPaArray.append(WC_33kPa)
+                    WC_100kPaArray.append(WC_100kPa)
+                    WC_1500kPaArray.append(WC_1500kPa)
+
+                # Write results back to the shapefile
+                # Add fields
+                arcpy.AddField_management(outputShp, "WC_1kPa", "DOUBLE", 10, 6)
+                arcpy.AddField_management(outputShp, "WC_3kPa", "DOUBLE", 10, 6)
+                arcpy.AddField_management(outputShp, "WC_10kPa", "DOUBLE", 10, 6)
+                arcpy.AddField_management(outputShp, "WC_33kPa", "DOUBLE", 10, 6)
+                arcpy.AddField_management(outputShp, "WC_100kPa", "DOUBLE", 10, 6)
+                arcpy.AddField_management(outputShp, "WC_1500kPa", "DOUBLE", 10, 6)
+
+                outputFields = ["WC_1kPa", "WC_3kPa", "WC_10kPa", "WC_33kPa", "WC_100kPa", "WC_1500kpa"]
+                
+                recordNum = 0
+                with arcpy.da.UpdateCursor(outputShp, outputFields) as cursor:
+                    for row in cursor:
+                        row[0] = WC_1kPaArray[recordNum]
+                        row[1] = WC_3kPaArray[recordNum]
+                        row[2] = WC_10kPaArray[recordNum]
+                        row[3] = WC_33kPaArray[recordNum]
+                        row[4] = WC_100kPaArray[recordNum]
+                        row[5] = WC_1500kPaArray[recordNum]
+
+                        cursor.updateRow(row)
+                        recordNum += 1
+
+                log.info("Results written to the output shapefile inside the output folder")
+
+
+            
             ## TODO: implement plots for all of the equations
 
             else:
@@ -2302,14 +2415,14 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
 
                 # Requirements: sand and clay                    
                 reqFields = ["OBJECTID", "Sand", "Clay"]
-                checkInputFields(reqFields, inputShp)
+                checkInputFields(reqFields, outputShp)
 
                 # Retrieve info from input
                 record = []
                 sandPerc = []
                 clayPerc = []
 
-                with arcpy.da.SearchCursor(inputShp, reqFields) as searchCursor:
+                with arcpy.da.SearchCursor(outputShp, reqFields) as searchCursor:
                     for row in searchCursor:
                         objectID = row[0]
                         sand = row[1]
@@ -2349,13 +2462,13 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
 
                 # Requirements: sand and clay                    
                 reqFields = ["OBJECTID", "Clay"]
-                checkInputFields(reqFields, inputShp)
+                checkInputFields(reqFields, outputShp)
 
                 # Retrieve info from input
                 record = []
                 clayPerc = []
 
-                with arcpy.da.SearchCursor(inputShp, reqFields) as searchCursor:
+                with arcpy.da.SearchCursor(outputShp, reqFields) as searchCursor:
                     for row in searchCursor:
                         objectID = row[0]
                         clay = row[1]
@@ -2391,7 +2504,7 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
 
                 # Requirements: silt, clay, BD
                 reqFields = ["OBJECTID", "Silt", "Clay", "BD"]
-                checkInputFields(reqFields, inputShp)
+                checkInputFields(reqFields, outputShp)
 
                 # Retrieve info from input
                 record = []
@@ -2399,7 +2512,7 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
                 clayPerc = []
                 BDg_cm3 = []
 
-                with arcpy.da.SearchCursor(inputShp, reqFields) as searchCursor:
+                with arcpy.da.SearchCursor(outputShp, reqFields) as searchCursor:
                     for row in searchCursor:
                         objectID = row[0]
                         silt = row[1]
@@ -2439,14 +2552,14 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
 
                 # Requirements: silt, clay
                 reqFields = ["OBJECTID", "Silt", "Clay"]
-                checkInputFields(reqFields, inputShp)
+                checkInputFields(reqFields, outputShp)
 
                 # Retrieve info from input
                 record = []
                 siltPerc = []
                 clayPerc = []
 
-                with arcpy.da.SearchCursor(inputShp, reqFields) as searchCursor:
+                with arcpy.da.SearchCursor(outputShp, reqFields) as searchCursor:
                     for row in searchCursor:
                         objectID = row[0]
                         silt = row[1]
@@ -2484,13 +2597,13 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
 
                 # Requirements: silt, clay
                 reqFields = ["OBJECTID", "Sand"]
-                checkInputFields(reqFields, inputShp)
+                checkInputFields(reqFields, outputShp)
 
                 # Retrieve info from input
                 record = []
                 sandPerc = []
 
-                with arcpy.da.SearchCursor(inputShp, reqFields) as searchCursor:
+                with arcpy.da.SearchCursor(outputShp, reqFields) as searchCursor:
                     for row in searchCursor:
                         objectID = row[0]
                         sand = row[1]
@@ -2533,7 +2646,7 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
                     reqFields = ["OBJECTID", "Sand", "Clay", "OM", "BD"]
                     carbonConFactor = 1.0
                     
-                checkInputFields(reqFields, inputShp)
+                checkInputFields(reqFields, outputShp)
 
                 # Retrieve info from input
                 record = []
@@ -2542,7 +2655,7 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
                 carbPerc = []
                 BDg_cm3 = []
 
-                with arcpy.da.SearchCursor(inputShp, reqFields) as searchCursor:
+                with arcpy.da.SearchCursor(outputShp, reqFields) as searchCursor:
                     for row in searchCursor:
                         objectID = row[0]
                         sand = row[1]
@@ -2559,7 +2672,54 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
                 K_satArray = []
 
                 for x in range(0, len(record)):
-                    K_sat = 0.920 * math.exp(0.0491 * sandPerc[x])
+                    K_sat = - 4.994 + (0.56728 * sandPerc[x]) - (0.131 * clayPerc[x]) - (0.0127 * carbPerc[x]*float(carbonConFactor))
+
+                    K_satArray.append(K_sat)
+
+                # Write results back to the shapefile
+                # Add fields
+                arcpy.AddField_management(outputShp, "K_sat", "DOUBLE", 10, 6)
+
+                outputFields = ["K_sat"]
+                
+                recordNum = 0
+                with arcpy.da.UpdateCursor(outputShp, outputFields) as cursor:
+                    for row in cursor:
+                        row[0] = K_satArray[recordNum]
+
+                        cursor.updateRow(row)
+                        recordNum += 1
+
+                log.info("Results written to the output shapefile inside the output folder")
+
+            elif KsatOption == "Ahuja_1989":
+                log.info("Calculating saturated hydraulic conductivity using Ahuja et al. (1989)")
+
+                # Requirements: WC_sat and WC_33kPa
+                
+                reqFields = ["OBJECTID", "WC_sat", "WC_33kPa"]
+                checkInputFields(reqFields, outputShp)
+
+                # Retrieve info from input
+                record = []
+                WC_satArray = []
+                WC_33kPaArray = []
+
+                with arcpy.da.SearchCursor(outputShp, reqFields) as searchCursor:
+                    for row in searchCursor:
+                        objectID = row[0]
+                        WCsat = row[1]
+                        WC33kPa = row[2]
+
+                        record.append(objectID)
+                        WC_satArray.append(WCsat)
+                        WC_33kPaArray.append(WC33kPa)
+
+                K_satArray = []
+
+                for x in range(0, len(record)):
+                    Eff_porosity = WC_satArray[x] - WC_33kPaArray[x]
+                    K_sat = 7645 * Eff_porosity **3.288
                     
                     K_satArray.append(K_sat)
 
@@ -2579,6 +2739,102 @@ def function(outputFolder, inputShp, PTFChoice, PTFOption, VGChoice, VGOption, K
 
                 log.info("Results written to the output shapefile inside the output folder")
 
+            elif KsatOption == "MinasnyMcBratney_2000":
+                log.info("Calculating saturated hydraulic conductivity using Minasny and McBratney (2000)")
+
+                # Requirements: WC_sat and WC_33kPa
+                
+                reqFields = ["OBJECTID", "WC_sat", "WC_33kPa"]
+                checkInputFields(reqFields, outputShp)
+
+                # Retrieve info from input
+                record = []
+                WC_satArray = []
+                WC_33kPaArray = []
+
+                with arcpy.da.SearchCursor(outputShp, reqFields) as searchCursor:
+                    for row in searchCursor:
+                        objectID = row[0]
+                        WCsat = row[1]
+                        WC33kPa = row[2]
+
+                        record.append(objectID)
+                        WC_satArray.append(WCsat)
+                        WC_33kPaArray.append(WC33kPa)
+
+                K_satArray = []
+
+                for x in range(0, len(record)):
+                    Eff_porosity = WC_satArray[x] - WC_33kPaArray[x]
+                    K_sat = 23190.55 * Eff_porosity ** 3.66
+
+                    K_satArray.append(K_sat)
+
+                # Write results back to the shapefile
+                # Add fields
+                arcpy.AddField_management(outputShp, "K_sat", "DOUBLE", 10, 6)
+
+                outputFields = ["K_sat"]
+                
+                recordNum = 0
+                with arcpy.da.UpdateCursor(outputShp, outputFields) as cursor:
+                    for row in cursor:
+                        row[0] = K_satArray[recordNum]
+
+                        cursor.updateRow(row)
+                        recordNum += 1
+
+                log.info("Results written to the output shapefile inside the output folder")
+
+            elif KsatOption == "Brakensiek_1984":
+                log.info("Calculating saturated hydraulic conductivity using Brakensiek et al. (1984)")
+
+                # Requirements: Clay, sand, WC_sat
+                
+                reqFields = ["OBJECTID", "Sand", "Clay", "WC_sat"]
+                checkInputFields(reqFields, outputShp)
+
+                # Retrieve info from input
+                record = []
+                sandPerc = []
+                clayPerc = []
+                WC_satArray = []
+
+
+                with arcpy.da.SearchCursor(outputShp, reqFields) as searchCursor:
+                    for row in searchCursor:
+                        objectID = row[0]
+                        sand = row[1]
+                        clay = row[2]
+                        WCsat = row[3]
+
+                        record.append(objectID)
+                        sandPerc.append(sand)
+                        clayPerc.append(clay)
+                        WC_satArray.append(WCsat)
+
+                K_satArray = []
+
+                for x in range(0, len(record)):
+                    K_sat = 10 * math.exp((19.52348 * WC_satArray[x]) - 8.96847 - (0.028212 * clayPerc[x]) + (0.00018107 * sandPerc[x]**2) - (0.0094125 * clayPerc[x]**2) - (8.395215 * WC_satArray[x]**2) + (0.077718 * sandPerc[x] * WC_satArray[x]) - (0.00298 * sandPerc[x]**2 * WC_satArray[x]**2) - (0.019492 * clayPerc[x]**2 * WC_satArray[x]**2) + (0.0000173 * sandPerc[x]**2 * clayPerc[x]) + (0.02733 * clayPerc[x]**2 * WC_satArray[x]) + (0.001434 * sandPerc[x]**2 * WC_satArray[x]) - (0.0000035 * clayPerc[x]**2 * sandPerc[x]))
+
+                    K_satArray.append(K_sat)
+
+                # Write results back to the shapefile
+                # Add fields
+                arcpy.AddField_management(outputShp, "K_sat", "DOUBLE", 10, 6)
+
+                outputFields = ["K_sat"]
+                
+                recordNum = 0
+                with arcpy.da.UpdateCursor(outputShp, outputFields) as cursor:
+                    for row in cursor:
+                        row[0] = K_satArray[recordNum]
+
+                        cursor.updateRow(row)
+                        recordNum += 1
+
+                log.info("Results written to the output shapefile inside the output folder")
 
             else:
                 log.error('Ksat option not recognised')

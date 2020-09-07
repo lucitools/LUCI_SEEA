@@ -148,6 +148,9 @@ def function(params):
         elif VG == "Dashtaki et al. (2010)":
             VGOption = 'Dashtaki_2010'
 
+        elif VG == "Hodnett and Tomasella (2002)":
+            VGOption = 'HodnettTomasella_2002'
+
         else:
             log.error('Invalid PTF option')
             sys.exit()
@@ -170,6 +173,15 @@ def function(params):
 
         elif Ksat == 'Ferrer Julia et al. (2004) - Sand, clay, OM':
             KsatOption = 'FerrerJulia_2004_2'
+
+        elif Ksat == 'Ahuja et al. (1989)':
+            KsatOption = 'Ahuja_1989'
+
+        elif Ksat == 'Minasny and McBratney (2000)':
+            KsatOption = 'MinasnyMcBratney_2000'
+
+        elif Ksat == 'Brakensiek et al. (1984)':
+            KsatOption = 'Brakensiek_1984'
 
         else:
             log.error('Invalid Ksat option')

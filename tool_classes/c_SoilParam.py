@@ -148,7 +148,7 @@ class SoilParam(object):
         param.value = u'Wosten et al. (1999)'
         param.filter.list = [u'Wosten et al. (1999)', u'Vereecken et al. (1989)',
                              u'Zacharias and Wessolek (2007)', u'Weynants et al. (2009)',
-                             u'Dashtaki et al. (2010)']
+                             u'Dashtaki et al. (2010)', u'Hodnett and Tomasella (2002)']
         params.append(param)
 
         # 8 Calculate_Ksat
@@ -172,7 +172,9 @@ class SoilParam(object):
         param.filter.list = [u'Cosby et al. (1984)', u'Puckett et al. (1985)',
                              u'Jabro (1992)', u'Campbell and Shiozawa (1994)',
                              u'Ferrer Julia et al. (2004) - Sand',
-                             u'Ferrer Julia et al. (2004) - Sand, clay, OM']
+                             u'Ferrer Julia et al. (2004) - Sand, clay, OM',
+                             u'Ahuja et al. (1989)', u'Minasny and McBratney (2000)',
+                             u'Brakensiek et al. (1984)']
         params.append(param)
 
         # 10 Carbon_content
