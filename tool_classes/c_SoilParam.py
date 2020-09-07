@@ -151,7 +151,31 @@ class SoilParam(object):
                              u'Dashtaki et al. (2010)']
         params.append(param)
 
-        # 8 Carbon_content
+        # 8 Calculate_Ksat
+        param = arcpy.Parameter()
+        param.name = u'Calculate_Ksat'
+        param.displayName = u'Calculate saturated hydraulic conductivity (Ksat)?'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'Boolean'
+        param.value = u'False'
+        params.append(param)
+
+        # 9 Ksat_of_choice
+        param = arcpy.Parameter()
+        param.name = u'Ksat_of_choice'
+        param.displayName = u'Estimate saturated hydraulic conductivity'
+        param.parameterType = 'Required'
+        param.direction = 'Input'
+        param.datatype = u'String'
+        param.value = u'Cosby et al. (1984)'
+        param.filter.list = [u'Cosby et al. (1984)', u'Puckett et al. (1985)',
+                             u'Jabro (1992)', u'Campbell and Shiozawa (1994)',
+                             u'Ferrer Julia et al. (2004) - Sand',
+                             u'Ferrer Julia et al. (2004) - Sand, clay, OM']
+        params.append(param)
+
+        # 10 Carbon_content
         param = arcpy.Parameter()
         param.name = u'Carbon_content'
         param.displayName = u'Carbon: Does your dataset contain organic carbon or organic matter?'
@@ -162,7 +186,7 @@ class SoilParam(object):
         param.filter.list = [u'Organic carbon', u'Organic matter']
         params.append(param)
 
-        # 9 Conversion_factor
+        # 11 Conversion_factor
         param = arcpy.Parameter()
         param.name = u'Conversion_factor'
         param.displayName = u'Carbon: enter a conversion factor'
@@ -172,7 +196,7 @@ class SoilParam(object):
         param.value = u'1.724'
         params.append(param)
 
-        # 10 Rerun_tool
+        # 12 Rerun_tool
         param = arcpy.Parameter()
         param.name = u'Rerun_tool'
         param.displayName = u'Rerun tool (will continue previous run from the point where any errors occurred)'

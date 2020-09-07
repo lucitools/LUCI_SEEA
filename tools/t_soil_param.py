@@ -22,12 +22,14 @@ def function(params):
         PTF = pText[5]
         VGChoice = common.strToBool(pText[6])
         VG = pText[7]
-        carbonContent = pText[8]
-        carbonConFactor = pText[9]
+        KsatChoice = common.strToBool(pText[8])
+        Ksat = pText[9]
+        carbonContent = pText[10]
+        carbonConFactor = pText[11]
 
         # Rerun parameter may not present when tool run as part of a batch run tool. If it is not, set rerun to False.
         try:
-            rerun = common.strToBool(pText[10])
+            rerun = common.strToBool(pText[12])
         except IndexError:
             rerun = False
         except Exception:
@@ -150,6 +152,29 @@ def function(params):
             log.error('Invalid PTF option')
             sys.exit()
 
+        # Set saturated hydraulic conductivity option
+        if Ksat == 'Cosby et al. (1984)':
+            KsatOption = 'Cosby_1984'
+
+        elif Ksat == 'Puckett et al. (1985)':
+            KsatOption = 'Puckett_1985'
+
+        elif Ksat == 'Jabro (1992)':
+            KsatOption = 'Jabro_1992'
+
+        elif Ksat == 'Campbell and Shiozawa (1994)':
+            KsatOption = 'CampbellShiozawa_1994'
+
+        elif Ksat == 'Ferrer Julia et al. (2004) - Sand':
+            KsatOption = 'FerrerJulia_2004_1'
+
+        elif Ksat == 'Ferrer Julia et al. (2004) - Sand, clay, OM':
+            KsatOption = 'FerrerJulia_2004_2'
+
+        else:
+            log.error('Invalid Ksat option')
+            sys.exit()
+
         # Set carbon content choice
         if carbonContent == 'Organic carbon':
             carbContent = 'OC'
@@ -162,7 +187,9 @@ def function(params):
             sys.exit()
 
         # Call soil parameterisation function
-        SoilParam.function(outputFolder, inputShapefile, PTFChoice, PTFOption, VGChoice, VGOption, carbContent, carbonConFactor, rerun)
+        SoilParam.function(outputFolder, inputShapefile, PTFChoice, PTFOption,
+                           VGChoice, VGOption, KsatChoice, KsatOption,
+                           carbContent, carbonConFactor, rerun)
 
         log.info("Soil parameterisation operations completed successfully")
 
