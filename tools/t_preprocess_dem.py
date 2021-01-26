@@ -185,7 +185,16 @@ def function(params):
             # Check that the inputs contain data
             for ras in rasterInputFiles:
                 if ras is not None:
-                    baseline.checkInputRaster(ras, outputFolder)
+
+                    # Check file size
+                    fileSizeGB = baseline.checkRasterSizeGB(ras)
+
+                    if fileSizeGB < 1.0:
+                        baseline.checkInputRaster(ras, outputFolder)
+
+                    else:
+                        log.warning("Cannot check if raster is empty or all NoData because it is too large")
+                        log.warning("Please ensure this raster is not empty or all NoData: " + str(ras))
 
             for fc in fcInputFiles:
                 if fc is not None:

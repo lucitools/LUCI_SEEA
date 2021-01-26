@@ -211,3 +211,25 @@ def clipInputs(outputFolder, studyAreaMaskBuff, inputDEM, inputLC, inputSoil, in
     except Exception:
         log.error("Input data clipping did not complete successfully")
         raise
+
+def checkRasterSizeGB(fileName):
+    # Checks the size of the raster and returns in GB
+
+    cols = arcpy.GetRasterProperties_management(fileName, "COLUMNCOUNT").getOutput(0)
+    rows = arcpy.GetRasterProperties_management(fileName, "ROWCOUNT").getOutput(0)
+    bitType = int(arcpy.GetRasterProperties_management(fileName, "VALUETYPE").getOutput(0))
+
+    if bitType <= 4:    # 8 bit
+        bytes = 1
+    elif bitType <= 6:  # 16 bit
+        bytes = 2
+    elif bitType <= 9:  # 32 bit
+        bytes = 4
+    elif bitType <= 14: # 64 bit
+        bytes = 8
+    else:
+        bytes = 4
+
+    sizeInGb = int(cols) * int(rows) * bytes / (1024.0 * 1024.0 * 1024.0)
+
+    return sizeInGb
